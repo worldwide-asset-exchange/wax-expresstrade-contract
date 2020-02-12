@@ -1,0 +1,145 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Barter Syntax check
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--------------------
+error assettype == 1 (SA_FT) and "assettype","=","string"
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=","ss"] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+Correct 
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",1]    ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error assettype == 1 (SA_FT) and "author","=","eosio.token"
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",1] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+Correct 
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",1] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+
+--------------------
+error assettype == 2 (TOKEN) and no quantity
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+Correct 
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",1] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+
+--------------------
+error assettype == 2 (TOKEN) and no author
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"assettype","=",1]] }' -p barter111111@active
+Correct 
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+
+--------------------
+error assettype == 1 (SA_FT) and no author
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"assettype","=",1]] }' -p barter111111@active
+Correct 
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",1] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error assettype == 1 (SA_FT) and no quantity
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",1]] }' -p barter111111@active
+Correct 
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",1] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error assettype == 0 (SA_NFT) and no category (without id)
+
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0], [1,1,"mdata.health","<","10"]] }' -p barter111111@active
+
+Have assettype
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0], [1,1, "category","=","kolobok"],[1,1,"mdata.health","<","10"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error assettype == 0 (SA_NFT) and no author (without id)
+
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0], [1,1, "category","=","kolobok"],[1,1,"mdata.health","<","10"]] }' -p barter111111@active
+
+Correct author
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"id","=","100000000004241"], [1,1,"assettype","=",0]] }' -p barter111111@active
+--------------------
+
+--------------------
+error no assettype (with id)
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"id","=","100000000004241"]] }' -p barter111111@active
+
+Have assettype
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"id","=","100000000004241"], [1,1,"assettype","=",0]] }' -p barter111111@active
+--------------------
+
+--------------------
+error no assettype ( author category assettype )
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1, "category","=","kolobok"]] }' -p barter111111@active
+
+Have assettype
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0], [1,1, "category","=","kolobok"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error Double id at one object and box
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"id","=","100000000004241"], [1,1,"id","=","100000000004241"] , [1,1,"assettype","=",0]] }' -p barter111111@active
+Correct id
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"id","=","100000000004241"], [1,1,"assettype","=",0]] }' -p barter111111@active
+--------------------
+
+--------------------
+error Double quantity at one object and box
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"], [1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+Correct owner
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2], [1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error Double owner at one object and box
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"],[1,1,"owner","=","alexnag1tran"], [1,1,"owner","=","alexnag1tran"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+Correct owner
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","eosio.token"],[1,1,"owner","=","alexnag1tran"], [1,1,"assettype","=",1] ,[1,1,"quantity","=","1.1111 EOS"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error Double mdata at one object and box
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0], [1,1, "category","=","kolobok"],[1,1,"mdata.health","<","10"],[1,1,"mdata.health","<","10"]] }' -p barter111111@active
+Correct mdata
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0], [1,1, "category","=","kolobok"],[1,1,"mdata.health","<","10"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error Double idata at one object and box
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0] ,[1,1, "category","=","kolobok"],[1,1,"idata.health","<","10"],[1,1,"idata.health","<","10"]] }' -p barter111111@active
+Correct idata
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"assettype","=",0] ,[1,1, "category","=","kolobok"],[1,1,"idata.health","<","10"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error Double author at one object and box
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1,"author","=","alexnag1tran"], [1,1, "category","=","kolobok"], [1,1,"idata.health","<","10"]] }' -p barter111111@active
+Correct author
+./cleos.sh --verbose push action barter111111 tstcondition '{ "conditions": [[1,1,"author","=","alexnag1tran"], [1,1, "category","=","kolobok"], [1,1,"idata.health","<","10"]] }' -p barter111111@active
+--------------------
+
+--------------------
+error double ft fo one box in different objects
+./cleos.sh --verbose push action barter111111 createprop '{ "owner":"alexnag1tran", "nfts":[100000000004241], "fts":[["eosio.token", "1.0000 EOS", 2]], "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"],[1,2,"author","=","eosio.token"], [1,2,"assettype","=",2] ,[1,2,"quantity","=","2.1111 EOS"], [1,3,"author","=","alexplayer11"], [1,3,"assettype","=",0] ,[1,3,"category","=","weapon"]] , "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  , "topropid":0 "account_to":"", "datestart":0, "dateexpire":0 , "auto_accept":true , "memo":""}' -p alexnag1tran@active
+correct ft condition
+./cleos.sh --verbose push action barter111111 createprop '{ "owner":"alexnag1tran", "nfts":[100000000004241], "fts":[["eosio.token", "1.0000 EOS", 2]], "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"], [1,3,"author","=","alexplayer11"], [1,3,"assettype","=",0] ,[1,3,"category","=","weapon"]] , "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  , "topropid":0 "account_to":"", "datestart":0, "dateexpire":0 , "auto_accept":true , "memo":""}' -p alexnag1tran@active
+--------------------
+
+--------------------
+error Two different authors in non-condition nfts parameter
+./cleos.sh --verbose push action barter111111 createprop '{ "owner":"alexplayer11", "nfts":[100000000004054, 100000000004225], "fts":[], "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"], [1,2,"author","=","alexplayer11"], [1,2,"assettype","=",0] ,[1,2,"category","=","weapon"]] , "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  , "topropid":0 "account_to":"", "datestart":0, "dateexpire":0 , "auto_accept":true , "memo":""}' -p alexplayer11@active
+correct
+./cleos.sh --verbose push action barter111111 createprop '{ "owner":"alexplayer11", "nfts":[100000000004225], "fts":[], "conditions": [[1,1,"author","=","eosio.token"], [1,1,"assettype","=",2] ,[1,1,"quantity","=","1.1111 EOS"], [1,2,"author","=","alexplayer11"], [1,2,"assettype","=",0] ,[1,2,"category","=","weapon"]] , "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  , "topropid":0 "account_to":"", "datestart":0, "dateexpire":0 , "auto_accept":true , "memo":""}' -p alexplayer11@active
+--------------------
+
+--------------------
+error dublicated id at different object in one box
+./cleos.sh --verbose push action barter111111 createprop '{ "owner":"alexplayer11", "nfts":[100000000004054], "fts":[], "conditions": [[1,1,"author","=","alexplayer11"], [1,1, "category","=","kolobok"], [1,1,"assettype","=",0] ,[1,1,"id","=","100000000004225"], [1,2,"author","=","alexplayer11"], [1,2, "category","=","kolobok"] , [1,2,"assettype","=",0] ,[1,2,"id","=","100000000004225"]] , "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  , "topropid":0 "account_to":"", "datestart":0, "dateexpire":0 , "auto_accept":true , "memo":""}' -p alexplayer11@active
+correct
+./cleos.sh --verbose push action barter111111 createprop '{ "owner":"alexplayer11", "nfts":[100000000004054], "fts":[], "conditions": [[1,1,"author","=","alexplayer11"], [1,1, "category","=","kolobok"], [1,1,"assettype","=",0] ,[1,1,"id","=","100000000004225"], [1,2,"author","=","alexplayer11"], [1,2, "category","=","kolobok"] , [1,2,"assettype","=",0] ,[1,2,"id","=","1000000000042251"]] , "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  , "topropid":0 "account_to":"", "datestart":0, "dateexpire":0 , "auto_accept":true , "memo":""}' -p alexplayer11@active
+--------------------
