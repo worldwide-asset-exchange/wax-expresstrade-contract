@@ -231,7 +231,7 @@ int count_of(const vector<tuple<key_t, operation_t, value_t>> & aconditions, con
 
 int count_of_data(const vector<tuple<key_t, operation_t, value_t>> & aconditions, const string &condition_name)
 {
-	return count_if(aconditions.begin(), aconditions.end(), [](tuple<key_t, operation_t, value_t> one_condition) { return get<0>(one_condition).find("mdata") == 0; });
+	return count_if(aconditions.begin(), aconditions.end(), [&](tuple<key_t, operation_t, value_t> one_condition) { return get<0>(one_condition).find(condition_name) == 0; });
 }
 
 void Barter::check_duplication(const unsigned & count, const string &count_name, const unsigned &box_id, const unsigned& object_id)
@@ -251,8 +251,8 @@ void Barter::check_key(const box_id_t & box_id, const object_id_t & object_id, c
 {
 	const auto&[condition_key, condition_operation, condition_value] = onecondition;
 
-	check(!(!(condition_key == "author" || condition_key == "category" || condition_key == "assettype" || condition_key == "owner" ||
-		condition_operation == "id" || condition_key.find("mdata") != string::npos || condition_key.find("idata") != string::npos) == true), "Condition key must be one of :( author, category, assettype, owner, id , mdata, idata ). You entered: [" + condition_key + " " + condition_operation + " " + condition_value + "]. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
+	check(!(!(condition_key == "author" || condition_key == "category" || condition_key == "assettype" || condition_key == "owner" || condition_key == "quantity" ||
+		condition_key == "id" || condition_key.find("mdata") != string::npos || condition_key.find("idata") != string::npos) == true), "Condition key must be one of :( author, category, assettype, quantity ,owner, id , mdata, idata ). You entered: [" + condition_key + " " + condition_operation + " " + condition_value + "]. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
 }
 
 void Barter::check_value(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition)
