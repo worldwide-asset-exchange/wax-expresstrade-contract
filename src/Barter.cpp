@@ -207,7 +207,23 @@ bool Barter::get_value(const string& filter, const string& imdata, string& resul
 }
 
 ACTION Barter::getversion() {
-	check(false, "Version number 1.0.5 Date: 2020-02-27 12:10");
+
+	string symbol;
+	#ifdef EOS_CHAIN
+	symbol = "EOS ";
+	#endif
+
+	#ifdef WAX_CHAIN
+	symbol = "WAX";
+	#endif
+
+	string versio_info = "Version number 1.0.6, Symbol: " + symbol + string(". Build date: 2020-02-27 12:46 ") + (hasLogging == true ? "with logging" : "without logging")
+		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() + " eosio.token: " + EOSIO_TOKEN.to_string();
+#ifdef DEBUG
+	versio_info += "Debug " + versio_info;
+#endif // DEBUG
+
+	check(false, versio_info);
 }
 
 ACTION Barter::rejectoffer(name owner, uint64_t offer_id)
