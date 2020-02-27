@@ -207,18 +207,18 @@ bool Barter::get_value(const string& filter, const string& imdata, string& resul
 }
 
 ACTION Barter::getversion() {
-	check(false, "Version number 1.0.4 Date: 2020-02-06 15:10");
+	check(false, "Version number 1.0.5 Date: 2020-02-27 12:10");
 }
 
 ACTION Barter::rejectoffer(name owner, uint64_t offer_id)
 {
 	require_auth(owner);
 
-	auto itr = stproposals_.find(offer_id);
-	check(!(itr == stproposals_.end()), "Wrong offer id: " + to_string(offer_id));
-	 
-	auto itr_topropid = stproposals_.find(itr->topropid);
-	check(!(itr_topropid == stproposals_.end()), "Proposal id: " + to_string(itr->topropid) + " from offer id: " + to_string(offer_id) + " does not exist");
+	auto itr = stproposals_.require_find(offer_id, string("Wrong offer id: " + to_string(offer_id)).c_str());
+
+	auto itr_topropid = stproposals_.require_find(itr->topropid, 
+		string("Proposal id: " + to_string(itr->topropid) + " from offer id: " + to_string(offer_id) + " does not exist").c_str());
+
 	check(!(itr_topropid->owner != owner), "You must be owner of proposal id: " + to_string(itr_topropid->id) + " to cancel offer id: " + to_string(offer_id) + ". Owner is: " + itr_topropid->owner.to_string() + "you entered: " + owner.to_string());
 
 	remove_proposal_with_conditions(offer_id);
@@ -466,10 +466,8 @@ ACTION Barter::delblacklist(name blacklisted_author)
 {
 	require_auth(get_self());
 
-	auto itr_blacklist = sblacklist_.find(blacklisted_author.value);
-	check(!(itr_blacklist == sblacklist_.end()), "Author: " + blacklisted_author.to_string() + " does not in blacklist");
-
-	sblacklist_.erase(itr_blacklist);
+	sblacklist_.erase(sblacklist_.require_find(blacklisted_author.value, 
+		string("Author: " + blacklisted_author.to_string() + " does not in blacklist").c_str()));
 }
 
 ACTION Barter::addblacklist(name blacklisted_author, string memo)
@@ -566,9 +564,7 @@ ACTION Barter::createprop(name owner, vector<nft_id_t>& nfts, vector<tuple<name,
 	// offer functionality
 	if (topropid != 0)
 	{
-		auto itr_topropid = stproposals_.find(topropid);
-		check(!(itr_topropid == stproposals_.end()), "Proposalid: " + to_string(topropid) + " does not exist");
-		check(!(itr_topropid->topropid != 0), "Cannot create offer to offer");
+		check(!(stproposals_.require_find(topropid, string("Proposalid: " + to_string(topropid) + " does not exist").c_str())->topropid != 0), "Cannot create offer to offer");
 	}
 
 	const auto new_proposal_id = stproposals_.available_primary_key();
@@ -590,7 +586,7 @@ ACTION Barter::createprop(name owner, vector<nft_id_t>& nfts, vector<tuple<name,
 		check(!(itr_aid->aid   != nft_id), "Wrong assetid: " + to_string(nft_id));
 		check(!(itr_aid->owner != owner), "Wrong owner for assetid: " + to_string(nft_id) + ". You entered owner: " + owner.to_string() + " but asset belong to: " + itr_aid->owner.to_string());
 
-		auto itr_seller_inventory = sinventory_.find(itr_aid->id);
+		auto itr_seller_inventory = sinventory_.require_find(itr_aid->id, string("Inventory item does not exist " + to_string(itr_aid->id)).c_str());
 
 		check( !(last_author != name("") && last_author != itr_seller_inventory->author), "Not allowed to create proposal with nfts from different authors. You have two different authors: " + last_author.to_string() + " for nft id: " + to_string(last_aid) + " and " + itr_seller_inventory->author.to_string() + " for nft id:" + to_string(itr_aid->id));
 
@@ -854,9 +850,7 @@ bool Barter::ismatchNFT(const name& owner, const tuple<key_t, operation_t, value
 
 void Barter::find_match_for_owner(const name& owner, const uint64_t& proposal_id, const uint64_t& box_id)
 {
-	auto itr_proposal_to_accept = stproposals_.find(proposal_id);
-
-	check(!(itr_proposal_to_accept == stproposals_.end()), "Wrong proposal id: " + to_string(proposal_id));
+	auto itr_proposal_to_accept = stproposals_.require_find(proposal_id, string("Wrong proposal id: " + to_string(proposal_id)).c_str());
 	check(!(itr_proposal_to_accept->owner == owner), "This proposal belong to you");
 	check(!(itr_proposal_to_accept->toaccount != name("") && itr_proposal_to_accept->toaccount != owner), "This proposal is exclusively for account: " + itr_proposal_to_accept->toaccount.to_string());
 	check(!(itr_proposal_to_accept->datestart > now()), "Proposal has start date. Time to wait: " + gettimeToWait(abs((int)((uint64_t)itr_proposal_to_accept->datestart - (uint64_t)now()))));
@@ -970,7 +964,7 @@ ACTION Barter::acceptprop(name owner, uint64_t proposal_id, uint64_t box_id)
 
 void Barter::exchange_aftermatch(name owner, uint64_t proposal_id)
 {
-	const auto& itr_proposal_to_accept = stproposals_.find(proposal_id);
+	const auto& itr_proposal_to_accept = stproposals_.require_find(proposal_id, string("Proposal id " + to_string(proposal_id) + " does not exist").c_str());
 	
 	// move buyer items from proposal to seller inventory
 	for (auto itr_buyer_to_exchange = buyer_to_exchange.begin(); itr_buyer_to_exchange != buyer_to_exchange.end(); itr_buyer_to_exchange++)
@@ -1184,9 +1178,8 @@ ACTION Barter::cancelprop(name owner, uint64_t proposal_id)
 {
 	require_auth(owner);
 
-	const auto& itr = stproposals_.find(proposal_id);
+	const auto& itr = stproposals_.require_find(proposal_id, string("Proposal id: " + to_string(proposal_id) + " does not exist").c_str());
 
-	check(!(itr == stproposals_.end()), "Wrong proposal id: " + to_string(proposal_id));
 	check(!(itr->owner != owner), "Wrong owner for proposal id: " + to_string(proposal_id) + ". You entered owner: " + owner.to_string() + " but proposal belong to: " + itr->owner.to_string());
 
 	const auto& owner_index = sinventory_.template get_index<"owner"_n>();
@@ -1237,9 +1230,9 @@ ACTION Barter::withdraw(name owner, vector<nft_id_t>& nfts, vector<tuple<name, a
 	{
 		const auto& nft_id  = nfts[i];
 		auto aid_index      = sinventory_.template get_index<"aid"_n>();
-		const auto& itr_aid = aid_index.find(nft_id);
 
-		check(!(itr_aid        == aid_index.end()), "Asset is not exist in inventory. Wrong assetid: " + to_string(nft_id));
+		const auto& itr_aid = aid_index.require_find(nft_id, string("Asset does not exist in inventory. Wrong assetid: " + to_string(nft_id)).c_str());
+
 		check(!(itr_aid->aid   != nft_id), "Wrong assetid: " + to_string(nft_id));
 		check(!(itr_aid->owner != owner), "Wrong owner for assetid: " + to_string(nft_id) + ". You entered owner: " + owner.to_string() + " but asset belong to: " + itr_aid->owner.to_string());
 
@@ -1417,8 +1410,8 @@ void Barter::receiveASSET(name from, name to, vector<uint64_t>& assetids, string
 	for (auto i = 0; i < assetids.size(); i++) 
 	{
 		sassets assets(SIMPLEASSETS_CONTRACT, _self.value);
-		const auto& idxk = assets.find(assetids[i]);
-		check(!(idxk == assets.end()), "Asset is not found or not yours");
+
+		const auto& idxk = assets.require_find(assetids[i], "Asset was not found or not yours");
 
 		check(!(sblacklist_.find(idxk->author.value) != sblacklist_.end()), "Author: " + idxk->author.to_string() + " was blacklisted");
 		const auto id = sinventory_.available_primary_key();
