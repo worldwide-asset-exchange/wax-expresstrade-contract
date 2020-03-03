@@ -230,13 +230,18 @@ public:
 			return owner.value;
 		}
 
+		uint64_t by_toaccount() const {
+			return toaccount.value;
+		}
+
 		uint64_t by_topropid() const {
 			return topropid;
 		}
 	};
 	typedef eosio::multi_index< "stproposals"_n, tproposals,
-		eosio::indexed_by< "owner"_n,    eosio::const_mem_fun<tproposals, uint64_t, &tproposals::by_owner> >,
-		eosio::indexed_by< "topropid"_n, eosio::const_mem_fun<tproposals, uint64_t, &tproposals::by_topropid> >
+		eosio::indexed_by< "owner"_n,     eosio::const_mem_fun<tproposals, uint64_t, &tproposals::by_owner> >,
+		eosio::indexed_by< "toaccount"_n, eosio::const_mem_fun<tproposals, uint64_t, &tproposals::by_toaccount> >,
+		eosio::indexed_by< "topropid"_n,  eosio::const_mem_fun<tproposals, uint64_t, &tproposals::by_topropid> >
 	> stproposals;
 
 
