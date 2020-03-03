@@ -375,7 +375,15 @@ void Barter::syntaxis_checker(const map < tuple < box_id_t, object_id_t>, vector
 		check_duplication(count_idata,     "idata",     box_id, object_id);
 
 		check(!(count_assettype == 0), "Must be added condition with assettype. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		check(!(count_author    == 0), "Must be added condition with author. At box_id: "    + to_string(box_id) + " object_id: " + to_string(object_id));
+
+		const auto assettype_condition = find_condition(aconditions, "assettype");
+		const auto assettype_condition_value = atoi(((string)get<2>(*assettype_condition)).c_str());
+
+		const auto hasIDCondition = (count_id > 0);
+		// check will work only if condition no have 'id'. For 'id' it no need 
+		if (!hasIDCondition) {
+			check(!(count_author == 0), "Must be added condition with author. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
+		}
 
 		// validate key , operation, value for formating
 		for (auto itr_condition = aconditions.begin(); itr_condition != aconditions.end(); itr_condition++)
@@ -386,12 +394,9 @@ void Barter::syntaxis_checker(const map < tuple < box_id_t, object_id_t>, vector
 		}
 
 		const auto id_condition        = find_condition(aconditions, "id");
-		const auto assettype_condition = find_condition(aconditions, "assettype");
 		const auto author_condition    = find_condition(aconditions, "author");
 		const auto quantity_condition  = find_condition(aconditions, "quantity");
 		
-		const auto assettype_condition_value = atoi(((string)get<2>(*assettype_condition)).c_str());
-
 		// check eosio.token contract asset type
 		if (assettype_condition_value != TOKEN)
 		{
@@ -401,7 +406,10 @@ void Barter::syntaxis_checker(const map < tuple < box_id_t, object_id_t>, vector
 
 		if (assettype_condition_value == SA_NFT)
 		{
-			check(!(count_category != 1), "For assettype = 0 (SA_NFT) must be added category condition. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
+			// check will work only if condition no have 'id'. For 'id' it no need 
+			if (!hasIDCondition) {
+				check(!(count_category != 1), "For assettype = 0 (SA_NFT) must be added category condition. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
+			}
 
 			if (id_condition != std::nullopt)
 			{
@@ -424,7 +432,7 @@ void Barter::syntaxis_checker(const map < tuple < box_id_t, object_id_t>, vector
 
 		if (assettype_condition_value == SA_FT || assettype_condition_value == TOKEN)
 		{
-			check(!(id_condition != std::nullopt), "id condition allowed only for assettype = 0(SA_NFT). At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + " .Has condition id = " + (string)get<2>(*id_condition) + " with assettype = " + to_string(assettype_condition_value));
+			check(!(id_condition != std::nullopt), "id condition allowed only for assettype = 0(SA_NFT). At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + " .You entered condition id = " + (string)get<2>(*id_condition) + " with assettype = " + to_string(assettype_condition_value));
 
 			const auto author_condition_value   = name((string)get<2>(*author_condition));
 			const auto quantity_condition_value = asset_from_string((string)get<2>(*quantity_condition));
@@ -931,7 +939,7 @@ void Barter::find_match_for_owner(const name& owner, const uint64_t& proposal_id
 		const auto author_condition    = find_condition(one_object_conditions, "author");
 		const auto quantity_condition  = find_condition(one_object_conditions, "quantity");
 		const auto assettype_condition = find_condition(one_object_conditions, "assettype");
-
+	
 		check(!(author_condition    == std::nullopt), "author does not exist in conditions of " + to_string(object_id));
 		check(!(quantity_condition  == std::nullopt), "quantity does not exist in conditions of object id:" + to_string(object_id));
 		check(!(assettype_condition == std::nullopt), "assettype does not exist in conditions of " + to_string(object_id));
@@ -956,7 +964,7 @@ void Barter::find_match_for_owner(const name& owner, const uint64_t& proposal_id
 
 			if (itr_buyer_inventory->assettype == assettype_condition_int && itr_buyer_inventory->author == author_condition_name && itr_buyer_inventory->quantity.symbol.code() == quantity_condition_asset.symbol.code())
 			{
-				check(!(itr_buyer_inventory->quantity.amount < quantity_condition_asset.amount), "Not enough amount for fungible token of author: " + author_condition_name.to_string() + " asset: " + quantity_condition_asset.to_string());
+				check(!(itr_buyer_inventory->quantity.amount < quantity_condition_asset.amount), "Not enough amount for fungible token of author: " + author_condition_name.to_string() + " asset: " + quantity_condition_asset.to_string() + " . Buyer " + owner.to_string() + " balance: " + itr_buyer_inventory->quantity.to_string() );
 
 				asset_to_subtract[itr_buyer_inventory->id] = quantity_condition_asset.amount;
 				if (hasLogging) { print("\n itr_buyer_inventory->id: ", itr_buyer_inventory->id); }
@@ -1116,15 +1124,20 @@ uint64_t Barter::findNFTfromConditions(name owner, const vector<tuple<key_t, ope
 		{
 			const auto author_condition    = find_condition(aconditions, "author");
 			const auto assettype_condition = find_condition(aconditions, "assettype");
+			const auto id_condition        = find_condition(aconditions, "id");
 
-			// break if no author or assettype
-			check(!(author_condition    == std::nullopt), "author does not exist in condition");
+			// if have 'id' condition no need author and 
+			if (id_condition == std::nullopt) {
+				// break if no author 
+				check(!(author_condition == std::nullopt), "author does not exist in condition");
+			}
+
+			// break if no assettype
 			check(!(assettype_condition == std::nullopt), "assettype does not exist in condition");
 			
-			const auto& author_condition_value        = (string)get<2>(*author_condition);
-			const unsigned& assettype_condition_value = atoi(((string)(get<2>(*assettype_condition))).c_str());
-
 			if (hasLogging) {
+				const auto& author_condition_value = (string)get<2>(*author_condition);
+				const unsigned& assettype_condition_value = atoi(((string)(get<2>(*assettype_condition))).c_str());
 				print("\n author_from_condition: "   , author_condition_value);
 				print("\n assettype_from_condition: ", assettype_condition_value);
 				print("\n itr_buyer_inventory->author: "   , itr_buyer_inventory->author.to_string());
