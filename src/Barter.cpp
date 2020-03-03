@@ -217,7 +217,7 @@ ACTION Barter::getversion() {
 	symbol = "WAX";
 	#endif
 
-	string versio_info = "Version number 1.0.6, Symbol: " + symbol + string(". Build date: 2020-02-27 12:46 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.7, Symbol: " + symbol + string(". Build date: 2020-03-03 15:20 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() + " eosio.token: " + EOSIO_TOKEN.to_string();
 #ifdef DEBUG
 	versio_info += "Debug " + versio_info;
