@@ -217,7 +217,7 @@ ACTION Barter::getversion() {
 	symbol = "WAX";
 	#endif
 
-	string versio_info = "Version number 1.0.7, Symbol: " + symbol + string(". Build date: 2020-03-03 15:20 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.8, Symbol: " + symbol + string(". Build date: 2020-03-27 19:20 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() + " eosio.token: " + EOSIO_TOKEN.to_string();
 #ifdef DEBUG
 	versio_info += "Debug " + versio_info;
@@ -522,11 +522,10 @@ ACTION Barter::createwish(name owner, vector<tuple<key_t, operation_t, value_t>>
 ACTION Barter::cancelwish(name owner, uint64_t wish_id)
 {
 	require_auth(owner);
+	const auto itr = swish_.require_find(wish_id, string("Wish_id: " + to_string(wish_id) + " does not exist").c_str());
+	check(!(itr->owner != owner), "Wrong owner for wish id: " + to_string(wish_id) + ". You entered owner: " + owner.to_string() + " but wish belong to: " + itr->owner.to_string());
 
-	auto itr_wish = swish_.find(wish_id);
-	check(!(itr_wish == swish_.end()), "Wish_id: " + to_string(wish_id) + " does not exist");
-
-	swish_.erase(itr_wish);
+	swish_.erase(itr);
 }
 
 bool Barter::hasDublicatedFT(const vector<tuple<name, asset, assettype_t>>& fts, string& out_dublicated_ft)
