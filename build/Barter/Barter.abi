@@ -290,7 +290,7 @@
                 },
                 {
                     "name": "exchange_fee",
-                    "type": "uint32"
+                    "type": "uint16"
                 },
                 {
                     "name": "affiliate_id",
@@ -298,7 +298,7 @@
                 },
                 {
                     "name": "affiliate_fee",
-                    "type": "uint32"
+                    "type": "uint16"
                 }
             ]
         },

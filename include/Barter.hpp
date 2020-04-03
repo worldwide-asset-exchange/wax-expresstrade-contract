@@ -10,43 +10,21 @@
 #include <vector>
 #include <string>
 #include <json.hpp>
+#include <common.hpp>
+#include <exchange_fee.hpp>
+#include <syntax_checker.hpp>
+#include <fee_processor.hpp>
 
 using json = nlohmann::json;
 using namespace eosio;
 using namespace std;
 
-//#define DEBUG
-//#define EOS_CHAIN
-#define WAX_CHAIN
-bool hasLogging = true;
-
-const name SIMPLEASSETS_CONTRACT = "simpleassets"_n; 
-const name EOSIO_TOKEN           = "eosio.token"_n; 
-
-enum token_type {SA_NFT = 0, SA_FT = 1, TOKEN = 2};
-
-typedef uint64_t box_id_t;
-typedef uint64_t object_id_t;
-typedef uint64_t assettype_t;
-typedef uint64_t nft_id_t;
-typedef uint64_t inventory_id_t;
-typedef string   key_t;
-typedef string   operation_t;
-typedef string   value_t;
-typedef uint64_t amount_t;
-
 CONTRACT Barter : public contract{
    public:
-	  using contract::contract;
+	using contract::contract;
 
 	public:
 	  static uint64_t code_test;
-	  struct exchange_fees {
-		  name     exchange;
-		  uint32_t exchange_fee;
-		  uint64_t affiliate_id;
-		  uint32_t affiliate_fee;
-	  };
 
 	  ACTION withdraw(name owner, vector<nft_id_t>& nfts, vector<tuple<name, asset, assettype_t>>& fts);
 	  using withdraw_action = action_wrapper<"withdraw"_n, &Barter::withdraw>;
@@ -86,6 +64,9 @@ CONTRACT Barter : public contract{
 	  void receiveASSETF(name from, name to, name author, asset quantity, string memo);
 #ifdef DEBUG
 public:
+	ACTION tstfee(name nft_author, exchange_fees fee, asset_ex payment_ft_from_proposal);
+	using tstfee_action = action_wrapper<"tstfee"_n, &Barter::tstfee>;
+
 	ACTION tstcondition(const vector<tuple<box_id_t, object_id_t, key_t, operation_t, value_t>>& conditions);
 	using tstcondition_action = action_wrapper<"tstcondition"_n, &Barter::tstcondition>;
 
@@ -118,6 +99,10 @@ public:
 
 	ACTION tstwithdraw(name owner, name asset_author, asset withraw_asset, uint64_t assettype);
 	using tstwithdraw_action = action_wrapper<"tstwithdraw"_n, &Barter::tstwithdraw>;
+
+	ACTION tstautfee(name author);
+	using tstautfee_action = action_wrapper<"tstautfee"_n, &Barter::tstautfee>;
+
 #endif 
 public:
 
@@ -351,7 +336,8 @@ public:
 
 private:
 	const string warning_must_be_condition = "Must be at least one condition";
-	const string withdraw_memo             = "WAXWETBarter assets withdraw";
+	const string withdraw_memo             = "Express Trade assets withdraw";
+	const string errorEmptyFT_NFT          = "Must be at least one fungible or non-fungible token";
 
 private:
 	sinventory sinventory_   = { _self, _self.value };
@@ -359,7 +345,11 @@ private:
 	stproposals stproposals_ = { _self, _self.value };
 	swish swish_             = { _self, _self.value };
 	sblacklist sblacklist_   = { _self, _self.value };
-	
+	sassets assets_          = { SIMPLEASSETS_CONTRACT, _self.value };
+
+
+	SyntaxChecker checker;
+	FeeProcessor fee_processor;
 	vector<inventory_id_t> buyer_to_exchange;
 	map<inventory_id_t, amount_t> asset_to_subtract;
 	map<box_id_t, vector<tuple<key_t, operation_t, value_t>>> mapObjectsNFT;
@@ -372,42 +362,15 @@ private:
 	void find_match_for_owner(const name& owner, const uint64_t& proposal_id, const uint64_t& box_id);
 	bool ismatchNFT(const name& owner, const tuple<key_t, operation_t, value_t> &onecondition, const name& inventory_author, const unsigned& inventory_assettype, const name& inventory_category, const name& inventory_owner, const uint64_t& inventory_aid, const string& inventory_mdata, const string& inventory_idata);
 	bool isdatamatch(const tuple<key_t, operation_t, value_t>& condition, const string& imdata);
-	bool isinteger(const string &str);
 	uint64_t findNFTfromConditions(name owner, const vector<tuple<key_t, operation_t, value_t> > & aconditions);
 	void depositFT(name deposit_account, name author, asset quantity, uint64_t assettype);
 	bool canwithdraw(name owner, name author, asset amount_to_withdraw, uint64_t assettype);
-	void split(const string& subject, vector<string>& container);
 	bool get_value(const string& filter, const string& imdata, string& result);
 	void print_tuple(const tuple<key_t, operation_t, value_t> &onecondition);
 	void create_conditions(const name& owner, const uint64_t& proposal_id, const vector<tuple<box_id_t, object_id_t, key_t, operation_t, value_t>>& conditions);
-	uint64_t getid();
-	string gettimeToWait(uint64_t time_in_seconds);
-
-	void syntaxis_checker(const map < tuple < box_id_t, object_id_t>, vector<tuple<key_t, operation_t, value_t>>> & mapconditions);
-	void check_duplication(const unsigned & count, const string &count_name, const unsigned &box_id, const unsigned& object_id);
-
-	void check_key(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition);
-	void check_operation(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition);
-	void check_value(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition);
-
-	bool hasDublicatedNFT(const vector<uint64_t>& nfts, string& out_dublicated_nft);
-	bool hasDublicatedFT(const vector<tuple<name, asset, assettype_t>>& fts, string& out_dublicated_ft);
-	auto find_condition(const vector<tuple<key_t, operation_t, value_t>>& aconditions, const string& condition_key);
 
 private:
-
-#ifdef WAX_CHAIN
-	const string SYMBOL_NAME = "WAX";
-	const int PRECISION = 8;
-#else
-#ifdef EOS_CHAIN
-	const string SYMBOL_NAME = "EOS";
-	const int PRECISION = 4;
-#endif
-#endif
-
-	asset asset_from_string(const string& s);
-	const vector<string> explode(const string& s, const char& c);
+	optional<name> get_nft_author(name owner, uint64_t proposal_id);
 };
 
 extern "C"
@@ -428,7 +391,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
 
 		switch (action) {
 #ifdef DEBUG
-			EOSIO_DISPATCH_HELPER(Barter, (createprop)(withdraw)(cancelprop)(acceptprop)(delcondition)(delproposal)(datamatch)(checkaccept)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition))
+			EOSIO_DISPATCH_HELPER(Barter, (createprop)(withdraw)(cancelprop)(acceptprop)(delcondition)(delproposal)(datamatch)(checkaccept)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition)(tstfee)(tstautfee))
 #else
 			EOSIO_DISPATCH_HELPER(Barter, (createprop)(withdraw)(cancelprop)(acceptprop)(rejectoffer)(getbalance)(createwish)(cancelwish)(getversion)(delblacklist)(addblacklist))
 #endif

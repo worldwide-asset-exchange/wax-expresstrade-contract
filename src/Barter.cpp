@@ -1,14 +1,5 @@
 #include <Barter.hpp>
 
-inline uint32_t now() {
-	static uint32_t current_time = current_time_point().sec_since_epoch();
-	return current_time;
-}
-
-bool Barter::isinteger(const string &str) {
-	return !str.empty() && find_if(str.begin(), str.end(), [](char chr) { return !isdigit(chr); }) == str.end();
-}
-
 bool Barter::isdatamatch(const tuple<key_t, operation_t, value_t>& condition, const string& imdata)
 {
 	auto match = false;
@@ -114,20 +105,6 @@ bool Barter::isdatamatch(const tuple<key_t, operation_t, value_t>& condition, co
 	return match;
 }
 
-void Barter::split(const string& subject, vector<string>& container)
-{
-	container.clear();
-	size_t len = subject.length() + 1;
-	char* s = new char[len];
-	memset(s, 0, len * sizeof(char));
-	memcpy(s, subject.c_str(), (len - 1) * sizeof(char));
-	for (char *p = strtok(s, "."); p != NULL; p = strtok(NULL, "."))
-	{
-		container.push_back(p);
-	}
-	delete[] s;
-}
-
 bool Barter::get_value(const string& filter, const string& imdata, string& result)
 {
 	if (hasLogging) {
@@ -210,14 +187,14 @@ ACTION Barter::getversion() {
 
 	string symbol;
 	#ifdef EOS_CHAIN
-	symbol = "EOS ";
+	symbol = "EOS";
 	#endif
 
 	#ifdef WAX_CHAIN
 	symbol = "WAX";
 	#endif
 
-	string versio_info = "Version number 1.0.8, Symbol: " + symbol + string(". Build date: 2020-03-27 19:20 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.9, Symbol: " + symbol + string(". Build date: 2020-03-30 15:40 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() + " eosio.token: " + EOSIO_TOKEN.to_string();
 #ifdef DEBUG
 	versio_info += "Debug " + versio_info;
@@ -240,217 +217,6 @@ ACTION Barter::rejectoffer(name owner, uint64_t offer_id)
 	remove_proposal_with_conditions(offer_id);
 }
 
-int count_of(const vector<tuple<key_t, operation_t, value_t>> & aconditions, const string &condition_name)
-{
-	return count_if(aconditions.begin(), aconditions.end(), [&](tuple<key_t, operation_t, value_t> one_condition) { return get<0>(one_condition) == condition_name; });
-}
-
-int count_of_data(const vector<tuple<key_t, operation_t, value_t>> & aconditions, const string &condition_name)
-{
-	return count_if(aconditions.begin(), aconditions.end(), [&](tuple<key_t, operation_t, value_t> one_condition) { return get<0>(one_condition).find(condition_name) == 0; });
-}
-
-void Barter::check_duplication(const unsigned & count, const string &count_name, const unsigned &box_id, const unsigned& object_id)
-{
-	check(!(count > 1), "More then one condition " + count_name + " for one object. Box id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-}
-
-auto Barter::find_condition(const vector<tuple<key_t, operation_t, value_t>>& aconditions, const string& condition_key)
-{
-	const auto& it = find_if(aconditions.begin(), aconditions.end(),
-		[&](const tuple<key_t, operation_t, value_t>& one_condition) { return get<0>(one_condition) == condition_key; });
-
-	return (it != aconditions.end()) ? optional<tuple<key_t, operation_t, value_t>>(*it) : std::nullopt;
-}
-
-void Barter::check_key(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition)
-{
-	const auto&[condition_key, condition_operation, condition_value] = onecondition;
-
-	check(!(!(condition_key == "author" || condition_key == "category" || condition_key == "assettype" || condition_key == "owner" || condition_key == "quantity" ||
-		condition_key == "id" || condition_key.find("mdata") != string::npos || condition_key.find("idata") != string::npos) == true), "Condition key must be one of :( author, category, assettype, quantity ,owner, id , mdata, idata ). You entered: [" + condition_key + " " + condition_operation + " " + condition_value + "]. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-}
-
-void Barter::check_value(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition)
-{
-	const auto&[condition_key, condition_operation, condition_value] = onecondition;
-
-	if (condition_key == "author")
-	{
-		check(!(is_account(name(condition_value)) == false), "Author`s name: " + condition_value + " is not an account at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-	}
-	else if (condition_key == "assettype")
-	{
-		const auto assettype_condition_value = atoi(condition_value.c_str());
-
-		// check is assettype valid
-		check(!(!(assettype_condition_value == SA_NFT || assettype_condition_value == SA_FT || assettype_condition_value == TOKEN) == true || isinteger(condition_value) == false),
-			"assettype must be equal: 0(SA_NFT) or 1(SA_FT) or 2(TOKEN). You entered: assettype = " + condition_value + " . At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-	}
-	else if (condition_key == "id")
-	{
-		check(!(isinteger(condition_value) == false), "id condition must be integer value . You entered id = " + condition_value + " . At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-	}
-}
-
-void Barter::check_operation(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition)
-{
-	const auto&[condition_key, condition_operation, condition_value] = onecondition;
-
-	check(!(!(condition_operation == "=" || condition_operation == "!=" || condition_operation == ">" || condition_operation == "<" || 
-		condition_operation == "<=" || condition_operation == ">=") == true), "Condition operation must be one of :( =, != , <, > , <=, >= ). You entered: [" + condition_key + " " + condition_operation + " " + condition_value + "]. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-
-	if (condition_key == "author")
-	{
-		if (condition_operation == "=")
-		{
-			check(!(is_account(name(condition_value)) == false), "Author`s name: " + condition_value + " is not an account at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-		else
-		{
-			check(false, "Condition for author must be only '= operator' at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-	}
-	else if (condition_key == "assettype")
-	{
-		if (condition_operation != "=")
-		{
-			check(false, "Condition for assettype must be only '= operator' at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-	}
-	else if (condition_key == "category")
-	{
-		if (condition_operation != "=")
-		{
-			check(false, "Condition for category must be only '= operator' at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-	}
-	else if (condition_key == "owner")
-	{
-		if (condition_operation == "=")
-		{
-			check(!(is_account(name(condition_value)) == false), "Owner`s name: " + condition_value + " is not an account at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-		else
-		{
-			check(false, "Condition for owner must be only '= operator' at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-	}
-	else if (condition_key == "id")
-	{
-		if (condition_operation != "=")
-		{
-			check(false, "Condition for id must be only '= operator' at box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-	}
-}
-
-void Barter::syntaxis_checker(const map < tuple < box_id_t, object_id_t>, vector<tuple<key_t, operation_t, value_t>>> & mapconditions)
-{
-	map <box_id_t, vector<tuple<name, asset, assettype_t>>> ft_tokens;
-	map <box_id_t, vector<nft_id_t>>                        nft_tokens;
-
-	for (auto itr_map = mapconditions.begin(); itr_map != mapconditions.end(); itr_map++)
-	{
-		const auto &[box_id, object_id] = itr_map->first;
-		const auto &aconditions         = itr_map->second;
-
-		const auto count_author    = count_of(aconditions,      "author");
-		const auto count_assettype = count_of(aconditions,      "assettype");
-		const auto count_owner     = count_of(aconditions,      "owner");
-		const auto count_id        = count_of(aconditions,      "id");
-		const auto count_category  = count_of(aconditions,      "category");
-		const auto count_quantity  = count_of(aconditions,      "quantity");
-		const auto count_mdata     = count_of_data(aconditions, "mdata");
-		const auto count_idata     = count_of_data(aconditions, "idata");
-
-		// only one instance of following conditions allowed for one object
-		check_duplication(count_author,    "author",    box_id, object_id);
-		check_duplication(count_quantity,  "quantity",  box_id, object_id);
-		check_duplication(count_assettype, "assettype", box_id, object_id);
-		check_duplication(count_owner,     "owner",     box_id, object_id);
-		check_duplication(count_id,        "id",        box_id, object_id);
-		check_duplication(count_category,  "category",  box_id, object_id);
-		check_duplication(count_mdata,     "mdata",     box_id, object_id);
-		check_duplication(count_idata,     "idata",     box_id, object_id);
-
-		check(!(count_assettype == 0), "Must be added condition with assettype. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-
-		const auto assettype_condition = find_condition(aconditions, "assettype");
-		const auto assettype_condition_value = atoi(((string)get<2>(*assettype_condition)).c_str());
-
-		const auto hasIDCondition = (count_id > 0);
-		// check will work only if condition no have 'id'. For 'id' it no need 
-		if (!hasIDCondition) {
-			check(!(count_author == 0), "Must be added condition with author. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-
-		// validate key , operation, value for formating
-		for (auto itr_condition = aconditions.begin(); itr_condition != aconditions.end(); itr_condition++)
-		{
-			check_key      (box_id, object_id, *itr_condition);
-			check_operation(box_id, object_id, *itr_condition);
-			check_value    (box_id, object_id, *itr_condition);
-		}
-
-		const auto id_condition        = find_condition(aconditions, "id");
-		const auto author_condition    = find_condition(aconditions, "author");
-		const auto quantity_condition  = find_condition(aconditions, "quantity");
-		
-		// check eosio.token contract asset type
-		if (assettype_condition_value != TOKEN)
-		{
-			check(!((name)((string)get<2>(*author_condition)) == EOSIO_TOKEN), 
-				"Wrong assettype for " + EOSIO_TOKEN.to_string() + " contract for box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + " . You entered: assettype = " + to_string(assettype_condition_value) + " Must be assettype = 2");
-		}
-
-		if (assettype_condition_value == SA_NFT)
-		{
-			// check will work only if condition no have 'id'. For 'id' it no need 
-			if (!hasIDCondition) {
-				check(!(count_category != 1), "For assettype = 0 (SA_NFT) must be added category condition. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-			}
-
-			if (id_condition != std::nullopt)
-			{
-				for (auto itr_nft_tokens = nft_tokens[box_id].begin(); itr_nft_tokens != nft_tokens[box_id].end(); itr_nft_tokens++)
-				{
-					check(!(atoll(((string)get<2>(*id_condition)).c_str()) == *itr_nft_tokens), "Dublication of id condition for box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + "condition id = " + (string)get<2>(*id_condition));
-				}
-
-				nft_tokens[box_id].emplace_back(atoll(((string)get<2>(*id_condition)).c_str()));
-			}
-		}
-		else if (assettype_condition_value == SA_FT)
-		{
-			check(!(count_quantity != 1), "For assettype = 1 (SA_FT) must be added quantity condition. box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-		else if (assettype_condition_value == TOKEN)
-		{
-			check(!(count_quantity != 1), "For assettype = 2 (TOKEN) must be added quantity condition. box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-		}
-
-		if (assettype_condition_value == SA_FT || assettype_condition_value == TOKEN)
-		{
-			check(!(id_condition != std::nullopt), "id condition allowed only for assettype = 0(SA_NFT). At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + " .You entered condition id = " + (string)get<2>(*id_condition) + " with assettype = " + to_string(assettype_condition_value));
-
-			const auto author_condition_value   = name((string)get<2>(*author_condition));
-			const auto quantity_condition_value = asset_from_string((string)get<2>(*quantity_condition));
-			// dublicated TOKEN check
-			for (auto itr_ft_tokens = ft_tokens[box_id].begin(); itr_ft_tokens != ft_tokens[box_id].end(); itr_ft_tokens++)
-			{
-				check(!(
-					get<0>(*itr_ft_tokens)               == author_condition_value &&
-					get<1>(*itr_ft_tokens).symbol.code() == quantity_condition_value.symbol.code() &&
-					get<2>(*itr_ft_tokens)               == assettype_condition_value),
-					"Token : " + get<2>(*author_condition) + " " + get<2>(*quantity_condition) + " " + get<2>(*assettype_condition) + " already exist in conditions at box_id: " + to_string(box_id));
-			}
-
-			ft_tokens[box_id].emplace_back(make_tuple(author_condition_value, quantity_condition_value, assettype_condition_value));
-		}
-	}
-}
-
 void Barter::create_conditions(const name& owner, const uint64_t& proposal_id, const vector<tuple<box_id_t, object_id_t, key_t, operation_t, value_t>>& conditions)
 {
 	map < tuple < box_id_t, object_id_t >, vector<tuple<key_t, operation_t, value_t>>> mapconditions;
@@ -465,7 +231,7 @@ void Barter::create_conditions(const name& owner, const uint64_t& proposal_id, c
 	}
 
 	// logic check for condition
-	syntaxis_checker(mapconditions);
+	checker.syntaxis_checker(mapconditions);
 
 	for (auto itr_map = mapconditions.begin(); itr_map != mapconditions.end(); itr_map++)
 	{
@@ -473,10 +239,9 @@ void Barter::create_conditions(const name& owner, const uint64_t& proposal_id, c
 		const auto& object_id = get<1>(itr_map->first);
 
 		const auto &aconditions = itr_map->second;
-		const auto id = sconditions_.available_primary_key();
 
 		sconditions_.emplace(get_self(), [&](auto& g) {
-			g.id          = id;
+			g.id          = sconditions_.available_primary_key();
 			g.owner       = owner;
 			g.proposalid  = proposal_id;
 			g.boxid       = box_id;
@@ -497,7 +262,7 @@ ACTION Barter::delblacklist(name blacklisted_author)
 ACTION Barter::addblacklist(name blacklisted_author, string memo)
 {
 	require_auth(get_self());
-	check(!(memo.size() > 256), "memo has more than 256 bytes");
+	check(!(memo.size() > MEMO_MAX_SIZE), "memo has more than " + to_string(MEMO_MAX_SIZE) + " bytes");
 
 	sblacklist_.emplace(get_self(), [&](auto& g) {
 		g.author = blacklisted_author;
@@ -510,10 +275,8 @@ ACTION Barter::createwish(name owner, vector<tuple<key_t, operation_t, value_t>>
 	require_auth(owner);
 	check(!(wish_conditions.size() == 0), warning_must_be_condition);
 
-	const auto id = swish_.available_primary_key();
-
 	swish_.emplace(get_self(), [&](auto& g) {
-		g.id         = id;
+		g.id         = swish_.available_primary_key();
 		g.owner      = owner;
 		g.conditions = wish_conditions;
 	});
@@ -528,61 +291,18 @@ ACTION Barter::cancelwish(name owner, uint64_t wish_id)
 	swish_.erase(itr);
 }
 
-bool Barter::hasDublicatedFT(const vector<tuple<name, asset, assettype_t>>& fts, string& out_dublicated_ft)
-{
-	bool result = false;
-	set<tuple<name, asset, uint64_t>> check_dublicated_ft_set;
-
-	for (auto i = 0; i < fts.size(); i++)
-	{
-		const auto& ft = fts[i];
-
-		auto ret = check_dublicated_ft_set.insert(ft);
-		if (ret.second == false)
-		{
-			out_dublicated_ft = get<0>(ft).to_string() + " " + get<1>(ft).to_string() + " " + to_string(get<2>(ft));
-			result = true;
-			break;
-		}
-	}
-
-	return result;
-}
-
-
-bool Barter::hasDublicatedNFT(const vector<uint64_t>& nfts, string& out_dublicated_nft)
-{
-	bool result = false;
-	set<uint64_t> check_dublicate_nft_set;
-
-	for (auto i = 0; i < nfts.size(); i++)
-	{
-		const auto& nft_id = nfts[i];
-
-		auto ret = check_dublicate_nft_set.insert(nft_id);
-		if (ret.second == false) 
-		{
-			out_dublicated_nft = to_string(nft_id);
-			result = true;
-			break;
-		}
-	}
-
-	return result;
-}
-
 ACTION Barter::createprop(name owner, vector<nft_id_t>& nfts, vector<tuple<name, asset, assettype_t>>& fts, vector<tuple<box_id_t, object_id_t, key_t, operation_t, value_t>>& conditions, exchange_fees fees, uint64_t topropid, name account_to, uint64_t datestart, uint64_t dateexpire, bool auto_accept, string memo)
 {
 	require_auth(owner);
-	check(!(nfts.size() == 0 && fts.size() == 0), "Must be at least one fungible or non-fungible token");
-	check(!(memo.size() > 256), "Paremeter memo has more than 256 bytes");
-	check(!(conditions.size() == 0), "Paremeter conditions cannot be empty");
+	check(!(nfts.size() == 0 && fts.size() == 0), errorEmptyFT_NFT);
+	check(!(memo.size() > MEMO_MAX_SIZE), "Parameter memo has more than "+ to_string(MEMO_MAX_SIZE) +" bytes. You entered size = " + to_string(memo.size()));
+	check(!(conditions.size() == 0), "Parameter conditions cannot be empty");
 
 	string dublicated_nft;
-	check(!(hasDublicatedNFT(nfts, dublicated_nft)), "nfts has dublicated id: " + dublicated_nft);
+	check(!(checker.hasDublicatedNFT(nfts, dublicated_nft)), "nfts has dublicated id: " + dublicated_nft);
 
 	string dublicated_ft;
-	check(!(hasDublicatedFT(fts, dublicated_ft)), "fts has dublicated item: " + dublicated_ft);
+	check(!(checker.hasDublicatedFT(fts, dublicated_ft)), "fts has dublicated item: " + dublicated_ft);
 
 	// offer functionality
 	if (topropid != 0)
@@ -608,6 +328,8 @@ ACTION Barter::createprop(name owner, vector<nft_id_t>& nfts, vector<tuple<name,
 		check(!(itr_aid        == aid_index.end()), "Wrong assetid: " + to_string(nft_id));
 		check(!(itr_aid->aid   != nft_id), "Wrong assetid: " + to_string(nft_id));
 		check(!(itr_aid->owner != owner), "Wrong owner for assetid: " + to_string(nft_id) + ". You entered owner: " + owner.to_string() + " but asset belong to: " + itr_aid->owner.to_string());
+
+		fees.checkfee(fee_processor.getAuthorFee(itr_aid->author));
 
 		auto itr_seller_inventory = sinventory_.require_find(itr_aid->id, string("Inventory item does not exist " + to_string(itr_aid->id)).c_str());
 
@@ -954,6 +676,7 @@ void Barter::find_match_for_owner(const name& owner, const uint64_t& proposal_id
 
 		const auto& buyer_inventory_index = sinventory_.template get_index<"owner"_n>();
 
+		bool matchFT = false;
 		// loop over buyer inventory and check conditions for each item
 		for (auto itr_buyer_inventory = buyer_inventory_index.find(owner.value); itr_buyer_inventory != buyer_inventory_index.end(); itr_buyer_inventory++)
 		{
@@ -965,14 +688,22 @@ void Barter::find_match_for_owner(const name& owner, const uint64_t& proposal_id
 			{
 				check(!(itr_buyer_inventory->quantity.amount < quantity_condition_asset.amount), "Not enough amount for fungible token of author: " + author_condition_name.to_string() + " asset: " + quantity_condition_asset.to_string() + " . Buyer " + owner.to_string() + " balance: " + itr_buyer_inventory->quantity.to_string() );
 
+				check(!(itr_buyer_inventory->quantity.symbol.precision() != quantity_condition_asset.symbol.precision()), 
+					"Wrong precision. Asset id: " + to_string(itr_buyer_inventory->id) + ". Symbol: " + itr_buyer_inventory->quantity.symbol.code().to_string() + 
+					" has precision " + to_string(itr_buyer_inventory->quantity.symbol.precision()) + ". You entered precision: " + 
+						to_string(quantity_condition_asset.symbol.precision()));
+					
 				asset_to_subtract[itr_buyer_inventory->id] = quantity_condition_asset.amount;
 				if (hasLogging) { print("\n itr_buyer_inventory->id: ", itr_buyer_inventory->id); }
-
+				matchFT = true;
 				buyer_to_exchange.push_back(itr_buyer_inventory->id);
 
 				break;
 			}
 		}
+
+		check(!(matchFT == false), "FT is not exist in your inventory. assettype = " + to_string(assettype_condition_int) + 
+			" author = " + author_condition_name.to_string() + " asset = " + quantity_condition_asset.to_string());
 	}
 }
 
@@ -987,8 +718,18 @@ ACTION Barter::acceptprop(name owner, uint64_t proposal_id, uint64_t box_id)
 
 void Barter::exchange_aftermatch(name owner, uint64_t proposal_id)
 {
+	if (hasLogging) {
+		print("\n exchange_aftermatch ");
+		print("\n buyer_to_exchange.size() = " + to_string(buyer_to_exchange.size()));
+	}
+
+	check(!(buyer_to_exchange.size() == 0), "Internal error. Empty buyer to exchange");
+
 	const auto& itr_proposal_to_accept = stproposals_.require_find(proposal_id, string("Proposal id " + to_string(proposal_id) + " does not exist").c_str());
 	
+	//Not allowed to create proposal with nfts from different authors. so possible to get first one
+	const auto nft_author = get_nft_author(itr_proposal_to_accept->owner, proposal_id);
+
 	// move buyer items from proposal to seller inventory
 	for (auto itr_buyer_to_exchange = buyer_to_exchange.begin(); itr_buyer_to_exchange != buyer_to_exchange.end(); itr_buyer_to_exchange++)
 	{
@@ -1020,8 +761,53 @@ void Barter::exchange_aftermatch(name owner, uint64_t proposal_id)
 					print("\n itr_buyer_inventory->quantity: ", itr_buyer_inventory->quantity);
 					print("\n move to seller account that was subtracted from buyer");
 				}
-				// move to their account that was subtracted from buyer
-				depositFT(itr_proposal_to_accept->owner, itr_buyer_inventory->author, asset(asset_to_subtract[itr_buyer_inventory->id], itr_buyer_inventory->quantity.symbol), itr_buyer_inventory->assettype);
+
+				asset seller_payment = asset(asset_to_subtract[itr_buyer_inventory->id], itr_buyer_inventory->quantity.symbol);
+				// subtruct here from asset payment to author and exchange fee. Exchange fee include affiliates fee
+				if (nft_author != std::nullopt)
+				{
+					fee_processor.start(get_self(), *nft_author, itr_proposal_to_accept->fees, { itr_buyer_inventory->author, seller_payment, itr_buyer_inventory->assettype });
+
+					if (hasLogging) {
+						print("\n seller_payment:", seller_payment, " amount: ", seller_payment.amount, " precesion: ", seller_payment.symbol.precision());
+					}
+
+					// payment asset to seller with subtructed author and exchange fee. Exchange fee include affiliates fee
+					seller_payment = fee_processor.getBuyerPart().quantity;
+
+					if (hasLogging) {
+						print("\n fee_processor.getBuyerPart().quantity:", fee_processor.getBuyerPart().quantity, " amount: ", fee_processor.getBuyerPart().quantity.amount, " precesion: ", fee_processor.getBuyerPart().quantity.symbol.precision());
+					}
+
+#ifdef AFFILIATEBANK
+					// deposit exchange`s fee
+					if (const auto exchange_fee = fee_processor.getExchangeFee(); exchange_fee.quantity.amount > 0)
+					{
+						depositFT(itr_proposal_to_accept->fees.exchange, exchange_fee.author, exchange_fee.quantity, exchange_fee.assettype);
+					}
+#endif
+
+					const auto author_fee = fee_processor.getAuthorFee();
+
+					if (hasLogging) {
+						print("\n deposit author`s fee");
+					}
+
+					// deposit author`s fee
+					if (author_fee.quantity.amount > 0)
+					{
+						depositFT(*nft_author, author_fee.author, author_fee.quantity, author_fee.assettype);
+					}
+
+					if (hasLogging) {
+						print("\n deposit to author account. author_fee.quantity: ", author_fee.quantity);
+						print("\n author: ", nft_author->to_string());
+					}
+
+				}
+
+				// move to seller account that was subtracted from buyer
+				depositFT(itr_proposal_to_accept->owner, itr_buyer_inventory->author, seller_payment, itr_buyer_inventory->assettype);
 			}
 
 			remove_all_proposals_for_inventory_item(itr_buyer_inventory->id);
@@ -1087,6 +873,7 @@ void Barter::exchange_aftermatch(name owner, uint64_t proposal_id)
 									print("\n after subtruct itr_seller_inventory->quantity: ", itr_seller_inventory->quantity);
 									print("\n deposit to buyer account");
 								}
+
 								// deposit to buyer account
 								depositFT(owner, author_from_proposal, asset_from_proposal, itr_seller_inventory->assettype);
 								remove_all_proposals_for_inventory_item(itr_seller_inventory->id);
@@ -1100,6 +887,32 @@ void Barter::exchange_aftermatch(name owner, uint64_t proposal_id)
 			}
 		}
 	}
+}
+
+optional<name> Barter::get_nft_author(name owner, uint64_t proposal_id)
+{
+	optional<name> result = std::nullopt;
+	// move seller items to buyer
+	const auto& seller_inventory_index = sinventory_.template get_index<"owner"_n>();
+
+	for (auto itr_seller_inventory = seller_inventory_index.find(owner.value); itr_seller_inventory != seller_inventory_index.end(); itr_seller_inventory++)
+	{
+		if (owner.value != itr_seller_inventory->owner.value) {
+			break;
+		}
+
+		for (auto itr_inprop = itr_seller_inventory->inproposal.begin(); itr_inprop != itr_seller_inventory->inproposal.end(); itr_inprop++)
+		{
+			if (*itr_inprop == proposal_id && itr_seller_inventory->assettype == SA_NFT)
+			{
+				// for nft just exchange owner
+				result = itr_seller_inventory->author;
+				break;
+			}
+		}
+	}
+
+	return result;
 }
 
 uint64_t Barter::findNFTfromConditions(name owner, const vector<tuple<key_t, operation_t, value_t> > & aconditions)
@@ -1252,7 +1065,7 @@ ACTION Barter::withdraw(name owner, vector<nft_id_t>& nfts, vector<tuple<name, a
 	require_auth(owner);
 	require_recipient(owner);
 
-	check(!(nfts.size() == 0 && fts.size() == 0), "Must be at least one fungible or non-fungible token");
+	check(!(nfts.size() == 0 && fts.size() == 0), errorEmptyFT_NFT);
 
 	for (auto i = 0; i < nfts.size(); i++)
 	{
@@ -1386,13 +1199,13 @@ void Barter::depositFT(name deposit_account, name author, asset quantity, uint64
 			const auto& itr = sinventory_.find(itrmynventory->id);
 			if (itr != sinventory_.end())
 			{
-				if (hasLogging) { print("\n Deposit itr->quantity:  ", itr->quantity); }
+				if (hasLogging) { print("\n Deposit of owner " + itr->owner.to_string() + " before modify itr->quantity:  ", itr->quantity); }
 
 				sinventory_.modify(itr, get_self(), [&](auto& s) {
 					s.quantity.amount += quantity.amount;
 				});
 
-				if (hasLogging) { print("\n itr->quantity: ", itr->quantity); }
+				if (hasLogging) { print("\n Deposit of owner " + itr->owner.to_string() + " after modify itr->quantity: ", itr->quantity); }
 
 				newasset = false;
 				break;
@@ -1402,9 +1215,8 @@ void Barter::depositFT(name deposit_account, name author, asset quantity, uint64
 
 	if (newasset)
 	{
-		const auto id = sinventory_.available_primary_key();
 		sinventory_.emplace(get_self(), [&](auto& g) {
-			g.id        = id;
+			g.id        = sinventory_.available_primary_key();
 			g.owner     = deposit_account;
 			g.assettype = assettype;
 			g.author    = author;
@@ -1442,10 +1254,9 @@ void Barter::receiveASSET(name from, name to, vector<uint64_t>& assetids, string
 		const auto& idxk = assets.require_find(assetids[i], "Asset was not found or not yours");
 
 		check(!(sblacklist_.find(idxk->author.value) != sblacklist_.end()), "Author: " + idxk->author.to_string() + " was blacklisted");
-		const auto id = sinventory_.available_primary_key();
 
 		sinventory_.emplace(get_self(), [&](auto& g) {
-			g.id        = id;
+			g.id        = sinventory_.available_primary_key();
 			g.owner     = from;
 			g.aid       = assetids[i];
 			g.assettype = SA_NFT; // NFT
@@ -1468,52 +1279,26 @@ void Barter::receiveToken(name from, name to, asset quantity, string memo)
 	depositFT(from, name(Barter::code_test), quantity, TOKEN);
 }
 
-string Barter::gettimeToWait(uint64_t time_in_seconds)
-{
-	uint64_t s, h, m = 0;
-	m = time_in_seconds / 60;
-	h = m / 60;
-	return to_string(int(h)) + " hours " + to_string(int(m % 60)) + " minutes " + to_string(int(time_in_seconds % 60)) + " seconds";
-}
-
-asset Barter::asset_from_string(const string& s)
-{
-	vector<string> v = explode(s, ' ');
-	vector<string> v1 = explode(v[0], '.');
-
-	for (auto i = v1[1].length(); i < PRECISION; i++) {
-		v1[1] += "0";
-	}
-
-	// asset( amount, symbol );
-	return asset(stoull(v1[0] + v1[1]), symbol(symbol_code(v[1]), PRECISION));
-}
-
-const vector<string> Barter::explode(const string& s, const char& c)
-{
-	string buff;
-	vector<string> v;
-
-	for (const auto& n : s) {
-		if (n != c) {
-			buff += n;
-		}
-		else {
-			if (n == c && buff != "") {
-				v.push_back(buff);
-				buff = "";
-			}
-		}
-	}
-
-	if (!buff.empty()) {
-		v.push_back(buff);
-	}
-
-	return v;
-}
-
 #ifdef DEBUG
+
+ACTION Barter::tstfee(name nft_author, exchange_fees fee, asset_ex payment_ft_from_proposal)
+{
+	fee.checkfee(fee_processor.getAuthorFee(nft_author));
+	fee_processor.start(get_self(), nft_author, fee, payment_ft_from_proposal);
+
+	const auto buyer_payment = fee_processor.getBuyerPart();
+#ifdef AFFILIATEBANK
+	if (const auto exchange_fee = fee_processor.getExchangeFee(); exchange_fee.quantity.amount > 0)
+	{
+		depositFT(fee.exchange, exchange_fee.author, exchange_fee.quantity, exchange_fee.assettype);
+	}
+#endif
+
+	if (const auto author_fee = fee_processor.getAuthorFee(); author_fee.quantity.amount > 0)
+	{
+		depositFT(nft_author, author_fee.author, author_fee.quantity, author_fee.assettype);
+	}
+}
 
 ACTION Barter::tstcondition(const vector<tuple<box_id_t, object_id_t, key_t, operation_t, value_t>>& conditions)
 {
@@ -1528,7 +1313,7 @@ ACTION Barter::tstcondition(const vector<tuple<box_id_t, object_id_t, key_t, ope
 		mapconditions[make_tuple(boxid, objectid)].push_back(make_tuple(key, operation, value));
 	}
 
-	syntaxis_checker(mapconditions);
+	checker.syntaxis_checker(mapconditions);
 }
 
 ACTION Barter::changetype(name owner, uint64_t inventory_id, uint64_t assettype)
@@ -1661,6 +1446,11 @@ ACTION Barter::testisint(const string& value)
 ACTION Barter::tstwithdraw(name owner, name asset_author, asset withraw_asset, uint64_t assettype)
 {
 	print("\n canwithdraw(owner, asset_author, withraw_asset):", canwithdraw(owner, asset_author, withraw_asset, assettype));
+}
+
+ACTION Barter::tstautfee(name author)
+{
+	print("\n getAuthorFee: ", fee_processor.getAuthorFee(author));
 }
 
 #endif
