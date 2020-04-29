@@ -1,0 +1,851 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [
+        {
+            "new_type_name": "assettype_t",
+            "type": "uint64"
+        },
+        {
+            "new_type_name": "box_id_t",
+            "type": "uint64"
+        },
+        {
+            "new_type_name": "nft_id_t",
+            "type": "uint64"
+        },
+        {
+            "new_type_name": "object_id_t",
+            "type": "uint64"
+        },
+        {
+            "new_type_name": "proposal_id_t",
+            "type": "uint64"
+        }
+    ],
+    "structs": [
+        {
+            "name": "acceptgift",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "gift_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "acceptoffer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "offer_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "account",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "author",
+                    "type": "uint64"
+                },
+                {
+                    "name": "balance",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "addblacklist",
+            "base": "",
+            "fields": [
+                {
+                    "name": "blacklisted_author",
+                    "type": "name"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "asset_ex",
+            "base": "",
+            "fields": [
+                {
+                    "name": "author",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "assettype",
+                    "type": "assettype_t"
+                }
+            ]
+        },
+        {
+            "name": "blacklist",
+            "base": "",
+            "fields": [
+                {
+                    "name": "author",
+                    "type": "name"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "cancelprop",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "proposal_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "cancelwish",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "wish_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "condition",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "string"
+                },
+                {
+                    "name": "operation",
+                    "type": "string"
+                },
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "conditions",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "proposalid",
+                    "type": "uint64"
+                },
+                {
+                    "name": "boxid",
+                    "type": "uint64"
+                },
+                {
+                    "name": "objectid",
+                    "type": "uint64"
+                },
+                {
+                    "name": "aconditions",
+                    "type": "condition[]"
+                }
+            ]
+        },
+        {
+            "name": "creategift",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "account_to",
+                    "type": "name"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "createoffer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "topropid",
+                    "type": "proposal_id_t"
+                },
+                {
+                    "name": "box_id",
+                    "type": "box_id_t"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "createprop",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "conditions",
+                    "type": "tuple_box_id_t_object_id_t_condition[]"
+                },
+                {
+                    "name": "fees",
+                    "type": "exchange_fees"
+                },
+                {
+                    "name": "account_to",
+                    "type": "name"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "auto_accept",
+                    "type": "bool"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "createwish",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "conditions",
+                    "type": "condition[]"
+                }
+            ]
+        },
+        {
+            "name": "currency_stats",
+            "base": "",
+            "fields": [
+                {
+                    "name": "supply",
+                    "type": "asset"
+                },
+                {
+                    "name": "max_supply",
+                    "type": "asset"
+                },
+                {
+                    "name": "issuer",
+                    "type": "name"
+                },
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "authorctrl",
+                    "type": "bool"
+                },
+                {
+                    "name": "data",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "date_range",
+            "base": "",
+            "fields": [
+                {
+                    "name": "datestart",
+                    "type": "uint64"
+                },
+                {
+                    "name": "dateexpire",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "delblacklist",
+            "base": "",
+            "fields": [
+                {
+                    "name": "blacklisted_author",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "depositprep",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                }
+            ]
+        },
+        {
+            "name": "exchange",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "eid",
+                    "type": "uint128"
+                },
+                {
+                    "name": "tcontract",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "exchange_fees",
+            "base": "",
+            "fields": [
+                {
+                    "name": "exchange",
+                    "type": "name"
+                },
+                {
+                    "name": "exchange_fee",
+                    "type": "uint16"
+                },
+                {
+                    "name": "affiliate_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "affiliate_fee",
+                    "type": "uint16"
+                }
+            ]
+        },
+        {
+            "name": "getbalance",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "author",
+                    "type": "name"
+                },
+                {
+                    "name": "sym",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "getversion",
+            "base": "",
+            "fields": []
+        },
+        {
+            "name": "inventory",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "aid",
+                    "type": "uint64"
+                },
+                {
+                    "name": "assettype",
+                    "type": "assettype_t"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "inproposal",
+                    "type": "proposal_id_t[]"
+                },
+                {
+                    "name": "author",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "rejectoffer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "offer_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "requestgift",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "conditions",
+                    "type": "tuple_box_id_t_object_id_t_condition[]"
+                },
+                {
+                    "name": "account_to",
+                    "type": "name"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "sasset",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "author",
+                    "type": "name"
+                },
+                {
+                    "name": "category",
+                    "type": "name"
+                },
+                {
+                    "name": "idata",
+                    "type": "string"
+                },
+                {
+                    "name": "mdata",
+                    "type": "string"
+                },
+                {
+                    "name": "container",
+                    "type": "sasset[]"
+                },
+                {
+                    "name": "containerf",
+                    "type": "account[]"
+                }
+            ]
+        },
+        {
+            "name": "sendgift",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "gift_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "box_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "tproposals",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "proposal_id_t"
+                },
+                {
+                    "name": "aaid",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "fees",
+                    "type": "exchange_fees"
+                },
+                {
+                    "name": "toaccount",
+                    "type": "name"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "topropid",
+                    "type": "proposal_id_t"
+                },
+                {
+                    "name": "auto_accept",
+                    "type": "bool"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "tuple_box_id_t_object_id_t_condition",
+            "base": "",
+            "fields": [
+                {
+                    "name": "field_0",
+                    "type": "box_id_t"
+                },
+                {
+                    "name": "field_1",
+                    "type": "object_id_t"
+                },
+                {
+                    "name": "field_2",
+                    "type": "condition"
+                }
+            ]
+        },
+        {
+            "name": "wish",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "conditions",
+                    "type": "condition[]"
+                }
+            ]
+        },
+        {
+            "name": "withdraw",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "acceptgift",
+            "type": "acceptgift",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "acceptoffer",
+            "type": "acceptoffer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addblacklist",
+            "type": "addblacklist",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cancelprop",
+            "type": "cancelprop",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cancelwish",
+            "type": "cancelwish",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "creategift",
+            "type": "creategift",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createoffer",
+            "type": "createoffer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createprop",
+            "type": "createprop",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createwish",
+            "type": "createwish",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delblacklist",
+            "type": "delblacklist",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "depositprep",
+            "type": "depositprep",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "getbalance",
+            "type": "getbalance",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "getversion",
+            "type": "getversion",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "rejectoffer",
+            "type": "rejectoffer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "requestgift",
+            "type": "requestgift",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "sendgift",
+            "type": "sendgift",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "withdraw",
+            "type": "withdraw",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "accounts",
+            "type": "account",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "sassets",
+            "type": "sasset",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "sblacklist",
+            "type": "blacklist",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "sconditions",
+            "type": "conditions",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "sexchange",
+            "type": "exchange",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "sinventory",
+            "type": "inventory",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "stat",
+            "type": "currency_stats",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "stproposals",
+            "type": "tproposals",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "swish",
+            "type": "wish",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}

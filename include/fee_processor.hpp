@@ -8,13 +8,13 @@
 #include <string>
 #include <json.hpp>
 #include <common.hpp>
-#include <exchange_fee.hpp>
+#include <exchange_fees.hpp>
 
 using json = nlohmann::json;
 using namespace eosio;
 using namespace std;
 
-class FeeProcessor
+class fee_processor
 {
 public:
 
@@ -74,7 +74,7 @@ public:
 
 		const double result = ((((double)fee.exchange_fee / (double)FEE_PRECISION_AMOUNT) * (double)original_amount) / (double)PERCENT100);
 
-		if (hasLogging) { print("\n ((((double)author_fee = ", (double)fee.exchange_fee, " / (double)FEE_PRECISION_AMOUNT = ", (double)FEE_PRECISION_AMOUNT, ") * (double)original_amount", (double)original_amount, ") / (double)PERCENT100) = ", PERCENT100);}
+		if (hasLogging) { print("\n ((((double)author_fee = ", (double)fee.exchange_fee, " / (double)FEE_PRECISION_AMOUNT = ", (double)FEE_PRECISION_AMOUNT, ") * (double)original_amount", (double)original_amount, ") / (double)PERCENT100) = ", PERCENT100); }
 
 		return (int64_t)result;
 	}
@@ -82,7 +82,7 @@ public:
 	int64_t calculateAuthorAmountFee(const name& author, const int64_t& original_amount)
 	{
 		const auto author_fee = getAuthorFee(author);
-		if (hasLogging) { print("\n author_fee: ", author_fee);	}
+		if (hasLogging) { print("\n author_fee: ", author_fee); }
 		const double result = ((((double)author_fee / (double)FEE_PRECISION_AMOUNT) * (double)original_amount) / (double)PERCENT100);
 
 		if (hasLogging) { print("\n ((((double)author_fee = ", (double)author_fee, " / (double)FEE_PRECISION_AMOUNT = ", (double)FEE_PRECISION_AMOUNT, ") * (double)original_amount", (double)original_amount, ") / (double)PERCENT100) = ", PERCENT100); }
@@ -116,7 +116,7 @@ public:
 				print("\n author does not registered. author=", author);
 			}
 		}
-		
+
 		if (result > AUTHOR_FEE_MAX)
 		{
 			if (hasLogging) {
@@ -131,11 +131,11 @@ public:
 	void start(name payer_name, name nft_author, exchange_fees fee, asset_ex payment_ft_from_proposal)
 	{
 #ifdef AFFILIATEBANK
-		payment_part_to_exchange     = payment_ft_from_proposal;
-		payment_part_to_affiliate    = payment_ft_from_proposal;
+		payment_part_to_exchange = payment_ft_from_proposal;
+		payment_part_to_affiliate = payment_ft_from_proposal;
 #endif
-		payment_part_to_buyer        = payment_ft_from_proposal;
-		payment_part_ft_to_author    = payment_ft_from_proposal;
+		payment_part_to_buyer = payment_ft_from_proposal;
+		payment_part_ft_to_author = payment_ft_from_proposal;
 		payment_part_ft_to_community = payment_ft_from_proposal;
 
 		// author + community fee processing
@@ -145,24 +145,23 @@ public:
 		const auto amount_for_community = calculateCommunityAmountFee(amount_for_author);
 		payment_part_ft_to_community.quantity.amount = amount_for_community;
 		payment_part_ft_to_author.quantity.amount = amount_for_author - amount_for_community;
-		//
 
 		// Exchange + Affiliates fee processing
-		const auto amount_for_exchange  = calculateExchangeAmountFee(fee, payment_ft_from_proposal.quantity.amount);
+		const auto amount_for_exchange = calculateExchangeAmountFee(fee, payment_ft_from_proposal.quantity.amount);
 #ifdef AFFILIATEBANK
-		payment_part_to_buyer.quantity.amount  -= amount_for_exchange;
+		payment_part_to_buyer.quantity.amount -= amount_for_exchange;
 		const auto amount_for_affiliate = calculateAffiliateAmountFee(fee, amount_for_exchange);
 		payment_part_to_affiliate.quantity.amount = amount_for_affiliate;
-		payment_part_to_exchange.quantity.amount  = amount_for_exchange - amount_for_affiliate;*/
+		payment_part_to_exchange.quantity.amount = amount_for_exchange - amount_for_affiliate; */
 #endif
 
-		if (hasLogging) {
-			print("\n payment_ft_from_proposal.assettype: ", payment_ft_from_proposal.assettype);
-			print("\n payment_part_to_exchange.quantity:  ", payment_part_to_exchange.quantity);
-			print("\n payment_part_to_affiliate.quantity: ", payment_part_to_affiliate.quantity);
-			print("\n payment_part_to_buyer.quantity:     ", payment_part_to_buyer.quantity);
-			print("\n payment_part_ft_to_author.quantity: ", payment_part_ft_to_author.quantity);
-		}
+			if (hasLogging) {
+				print("\n payment_ft_from_proposal.assettype: ", payment_ft_from_proposal.assettype);
+				print("\n payment_part_to_exchange.quantity:  ", payment_part_to_exchange.quantity);
+				print("\n payment_part_to_affiliate.quantity: ", payment_part_to_affiliate.quantity);
+				print("\n payment_part_to_buyer.quantity:     ", payment_part_to_buyer.quantity);
+				print("\n payment_part_ft_to_author.quantity: ", payment_part_ft_to_author.quantity);
+			}
 
 		if (amount_for_community > 0)
 		{
@@ -204,7 +203,7 @@ public:
 		}
 	}
 
-	void sendFeeToAffiliateBank(name payer_name ,exchange_fees fee, asset_ex payment_to_exchange)
+	void sendFeeToAffiliateBank(name payer_name, exchange_fees fee, asset_ex payment_to_exchange)
 	{
 		json fee_memo;
 		fee_memo["exchange"] = fee.exchange.to_string();

@@ -16,18 +16,18 @@
 using namespace eosio;
 using namespace std;
 
-class SyntaxChecker
+class syntax_checker
 {
 public:
 
-	bool hasDublicatedFT(const vector<tuple<name, asset, assettype_t>>& fts, string& out_dublicated_ft)
+	bool hasDublicatedFT(const vector<asset_ex>& fts, string& out_dublicated_ft)
 	{
 		bool result = false;
 		set<tuple<name, asset, uint64_t>> check_dublicated_ft_set;
 
 		for (auto i = 0; i < fts.size(); i++)
 		{
-			const auto& ft = fts[i];
+			const auto& ft = make_tuple(fts[i].author, fts[i].quantity, fts[i].assettype);
 
 			auto ret = check_dublicated_ft_set.insert(ft);
 			if (ret.second == false)
@@ -62,8 +62,7 @@ public:
 		return result;
 	}
 
-
-	void check_key(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition)
+	void check_key(const box_id_t & box_id, const object_id_t & object_id, const condition& onecondition)
 	{
 		const auto&[condition_key, condition_operation, condition_value] = onecondition;
 
@@ -71,7 +70,7 @@ public:
 			condition_key == "id" || condition_key.find("mdata") != string::npos || condition_key.find("idata") != string::npos) == true), "Condition key must be one of :( author, category, assettype, quantity ,owner, id , mdata, idata ). You entered: [" + condition_key + " " + condition_operation + " " + condition_value + "]. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
 	}
 
-	void check_value(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition)
+	void check_value(const box_id_t & box_id, const object_id_t & object_id, const condition& onecondition)
 	{
 		const auto&[condition_key, condition_operation, condition_value] = onecondition;
 
@@ -93,7 +92,7 @@ public:
 		}
 	}
 
-	void check_operation(const box_id_t & box_id, const object_id_t & object_id, const tuple<key_t, operation_t, value_t>& onecondition)
+	void check_operation(const box_id_t & box_id, const object_id_t & object_id, const condition& onecondition)
 	{
 		const auto&[condition_key, condition_operation, condition_value] = onecondition;
 
@@ -145,22 +144,22 @@ public:
 		}
 	}
 
-	auto find_condition(const vector<tuple<key_t, operation_t, value_t>>& aconditions, const string& condition_key)
+	auto find_condition(const vector<condition>& aconditions, const string& condition_key)
 	{
 		const auto& it = find_if(aconditions.begin(), aconditions.end(),
-			[&](const tuple<key_t, operation_t, value_t>& one_condition) { return get<0>(one_condition) == condition_key; });
+			[&](const condition& one_condition) { return one_condition.key == condition_key; });
 
-		return (it != aconditions.end()) ? optional<tuple<key_t, operation_t, value_t>>(*it) : std::nullopt;
+		return (it != aconditions.end()) ? optional<condition>(*it) : std::nullopt;
 	}
 
-	int count_of(const vector<tuple<key_t, operation_t, value_t>> & aconditions, const string &condition_name)
+	int count_of(const vector<condition> & aconditions, const string &condition_name)
 	{
-		return count_if(aconditions.begin(), aconditions.end(), [&](tuple<key_t, operation_t, value_t> one_condition) { return get<0>(one_condition) == condition_name; });
+		return count_if(aconditions.begin(), aconditions.end(), [&](condition one_condition) { return one_condition.key == condition_name; });
 	}
 
-	int count_of_data(const vector<tuple<key_t, operation_t, value_t>> & aconditions, const string &condition_name)
+	int count_of_data(const vector<condition> & aconditions, const string &condition_name)
 	{
-		return count_if(aconditions.begin(), aconditions.end(), [&](tuple<key_t, operation_t, value_t> one_condition) { return get<0>(one_condition).find(condition_name) == 0; });
+		return count_if(aconditions.begin(), aconditions.end(), [&](condition one_condition) { return one_condition.key.find(condition_name) == 0; });
 	}
 
 	void check_duplication(const unsigned & count, const string &count_name, const unsigned &box_id, const unsigned& object_id)
@@ -168,10 +167,10 @@ public:
 		check(!(count > 1), "More then one condition " + count_name + " for one object. Box id: " + to_string(box_id) + " object_id: " + to_string(object_id));
 	}
 
-	void syntaxis_checker(const map < tuple < box_id_t, object_id_t>, vector<tuple<key_t, operation_t, value_t>>> & mapconditions)
+	void syntaxis_checker(const map < tuple < box_id_t, object_id_t >, vector<condition>> &mapconditions, bool isoffer)
 	{
-		map <box_id_t, vector<tuple<name, asset, assettype_t>>> ft_tokens;
-		map <box_id_t, vector<nft_id_t>>                        nft_tokens;
+		map <box_id_t, vector<asset_ex>> ft_tokens;
+		map <box_id_t, vector<nft_id_t>> nft_tokens;
 
 		for (auto itr_map = mapconditions.begin(); itr_map != mapconditions.end(); itr_map++)
 		{
@@ -187,6 +186,14 @@ public:
 			const auto count_mdata = count_of_data(aconditions, "mdata");
 			const auto count_idata = count_of_data(aconditions, "idata");
 
+			if (isoffer)
+			{
+				check(!(count_owner > 0), "owner is not allowed for offer");
+				check(!(count_idata > 0), "idata is not allowed for offer");
+				check(!(count_mdata > 0), "mdata is not allowed for offer");
+				check(!(count_category > 0), "category is not allowed for offer");
+			}
+
 			// only one instance of following conditions allowed for one object
 			check_duplication(count_author, "author", box_id, object_id);
 			check_duplication(count_quantity, "quantity", box_id, object_id);
@@ -200,7 +207,7 @@ public:
 			check(!(count_assettype == 0), "Must be added condition with assettype. At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
 
 			const auto assettype_condition = find_condition(aconditions, "assettype");
-			const auto assettype_condition_value = atoi(((string)get<2>(*assettype_condition)).c_str());
+			const auto assettype_condition_value = atoll(assettype_condition->value.c_str());
 
 			const auto hasIDCondition = (count_id > 0);
 			// check will work only if condition no have 'id'. For 'id' it no need 
@@ -223,7 +230,7 @@ public:
 			// check eosio.token contract asset type
 			if (assettype_condition_value != TOKEN)
 			{
-				check(!((name)((string)get<2>(*author_condition)) == EOSIO_TOKEN),
+				check(!((name)(author_condition->value) == EOSIO_TOKEN),
 					"Wrong assettype for " + EOSIO_TOKEN.to_string() + " contract for box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + " . You entered: assettype = " + to_string(assettype_condition_value) + " Must be assettype = 2");
 			}
 
@@ -236,42 +243,41 @@ public:
 
 				if (id_condition != std::nullopt)
 				{
+					for (auto itr_nft_tokens = nft_tokens[box_id].begin(); itr_nft_tokens != nft_tokens[box_id].end(); itr_nft_tokens++)
 					{
-						for (auto itr_nft_tokens = nft_tokens[box_id].begin(); itr_nft_tokens != nft_tokens[box_id].end(); itr_nft_tokens++)
-						{
-							check(!(atoll(((string)get<2>(*id_condition)).c_str()) == *itr_nft_tokens), "Dublication of id condition for box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + "condition id = " + (string)get<2>(*id_condition));
-						}
-
-						nft_tokens[box_id].emplace_back(atoll(((string)get<2>(*id_condition)).c_str()));
-					}
-				}
-				else if (assettype_condition_value == SA_FT)
-				{
-					check(!(count_quantity != 1), "For assettype = 1 (SA_FT) must be added quantity condition. box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-				}
-				else if (assettype_condition_value == TOKEN)
-				{
-					check(!(count_quantity != 1), "For assettype = 2 (TOKEN) must be added quantity condition. box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
-				}
-
-				if (assettype_condition_value == SA_FT || assettype_condition_value == TOKEN)
-				{
-					check(!(id_condition != std::nullopt), "id condition allowed only for assettype = 0(SA_NFT). At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + " .You entered condition id = " + (string)get<2>(*id_condition) + " with assettype = " + to_string(assettype_condition_value));
-
-					const auto author_condition_value = name((string)get<2>(*author_condition));
-					const auto quantity_condition_value = asset_from_string((string)get<2>(*quantity_condition));
-					// dublicated TOKEN check
-					for (auto itr_ft_tokens = ft_tokens[box_id].begin(); itr_ft_tokens != ft_tokens[box_id].end(); itr_ft_tokens++)
-					{
-						check(!(
-							get<0>(*itr_ft_tokens) == author_condition_value &&
-							get<1>(*itr_ft_tokens).symbol.code() == quantity_condition_value.symbol.code() &&
-							get<2>(*itr_ft_tokens) == assettype_condition_value),
-							"Token : " + get<2>(*author_condition) + " " + get<2>(*quantity_condition) + " " + get<2>(*assettype_condition) + " already exist in conditions at box_id: " + to_string(box_id));
+						check(!(atoll(id_condition->value.c_str()) == *itr_nft_tokens), "Dublication of id condition for box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + "condition id = " + id_condition->value);
 					}
 
-					ft_tokens[box_id].emplace_back(make_tuple(author_condition_value, quantity_condition_value, assettype_condition_value));
+					nft_tokens[box_id].emplace_back(atoll(id_condition->value.c_str()));
 				}
+			}
+			else if (assettype_condition_value == SA_FT)
+			{
+				check(!(count_quantity != 1), "For assettype = 1 (SA_FT) must be added quantity condition. box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
+			}
+			else if (assettype_condition_value == TOKEN)
+			{
+				check(!(count_quantity != 1), "For assettype = 2 (TOKEN) must be added quantity condition. box_id: " + to_string(box_id) + " object_id: " + to_string(object_id));
+			}
+
+			if (assettype_condition_value == SA_FT || assettype_condition_value == TOKEN)
+			{
+				check(!(id_condition != std::nullopt), "id condition allowed only for assettype = 0(SA_NFT). At box_id: " + to_string(box_id) + " object_id: " + to_string(object_id) + " .You entered condition id = " + id_condition->value + " with assettype = " + to_string(assettype_condition_value));
+
+				const auto author_condition_value = name(author_condition->value);
+				const auto quantity_condition_value = asset_from_string(quantity_condition->value);
+
+				// dublicated TOKEN check
+				for (auto itr_ft_tokens = ft_tokens[box_id].begin(); itr_ft_tokens != ft_tokens[box_id].end(); itr_ft_tokens++)
+				{
+					check(!(
+						itr_ft_tokens->author == author_condition_value &&
+						itr_ft_tokens->quantity.symbol.code() == quantity_condition_value.symbol.code() &&
+						itr_ft_tokens->assettype == assettype_condition_value),
+						"Token : " + author_condition->value + " " + quantity_condition->value + " " + assettype_condition->value + " already exist in conditions at box_id: " + to_string(box_id));
+				}
+
+				ft_tokens[box_id].emplace_back(asset_ex{ author_condition_value, quantity_condition_value, (assettype_t)assettype_condition_value });
 			}
 		}
 	}

@@ -1,0 +1,227 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [
+        {
+            "new_type_name": "assettype_t",
+            "type": "uint64"
+        }
+    ],
+    "structs": [
+        {
+            "name": "addaffiliate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "exchange",
+                    "type": "name"
+                },
+                {
+                    "name": "affiliate",
+                    "type": "name"
+                },
+                {
+                    "name": "affiliate_name",
+                    "type": "string"
+                },
+                {
+                    "name": "data",
+                    "type": "key_value[]"
+                }
+            ]
+        },
+        {
+            "name": "addexchange",
+            "base": "",
+            "fields": [
+                {
+                    "name": "exchange",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "key_value[]"
+                }
+            ]
+        },
+        {
+            "name": "affiliates",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "exchange",
+                    "type": "name"
+                },
+                {
+                    "name": "affiliate",
+                    "type": "name"
+                },
+                {
+                    "name": "affiliate_name",
+                    "type": "string"
+                },
+                {
+                    "name": "balance",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "data",
+                    "type": "key_value[]"
+                }
+            ]
+        },
+        {
+            "name": "asset_ex",
+            "base": "",
+            "fields": [
+                {
+                    "name": "author",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "assettype",
+                    "type": "assettype_t"
+                }
+            ]
+        },
+        {
+            "name": "exchanges",
+            "base": "",
+            "fields": [
+                {
+                    "name": "exchange",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "key_value[]"
+                }
+            ]
+        },
+        {
+            "name": "key_value",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "string"
+                },
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "modaffiliate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "affiliate_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "exchange",
+                    "type": "name"
+                },
+                {
+                    "name": "affiliate",
+                    "type": "name"
+                },
+                {
+                    "name": "affiliate_name",
+                    "type": "string"
+                },
+                {
+                    "name": "data",
+                    "type": "key_value[]"
+                }
+            ]
+        },
+        {
+            "name": "modexchange",
+            "base": "",
+            "fields": [
+                {
+                    "name": "exchange",
+                    "type": "name"
+                },
+                {
+                    "name": "data",
+                    "type": "key_value[]"
+                }
+            ]
+        },
+        {
+            "name": "withdraw",
+            "base": "",
+            "fields": [
+                {
+                    "name": "affiliate_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "affiliate",
+                    "type": "name"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addaffiliate",
+            "type": "addaffiliate",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addexchange",
+            "type": "addexchange",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "modaffiliate",
+            "type": "modaffiliate",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "modexchange",
+            "type": "modexchange",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "withdraw",
+            "type": "withdraw",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "saffiliates",
+            "type": "affiliates",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "sexchanges",
+            "type": "exchanges",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}

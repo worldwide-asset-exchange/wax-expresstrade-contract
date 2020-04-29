@@ -11,10 +11,6 @@
             "type": "uint64"
         },
         {
-            "new_type_name": "key_t",
-            "type": "string"
-        },
-        {
             "new_type_name": "nft_id_t",
             "type": "uint64"
         },
@@ -23,17 +19,13 @@
             "type": "uint64"
         },
         {
-            "new_type_name": "operation_t",
-            "type": "string"
-        },
-        {
-            "new_type_name": "value_t",
-            "type": "string"
+            "new_type_name": "proposal_id_t",
+            "type": "uint64"
         }
     ],
     "structs": [
         {
-            "name": "acceptprop",
+            "name": "acceptgift",
             "base": "",
             "fields": [
                 {
@@ -41,11 +33,21 @@
                     "type": "name"
                 },
                 {
-                    "name": "proposal_id",
+                    "name": "gift_id",
                     "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "acceptoffer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
                 },
                 {
-                    "name": "box_id",
+                    "name": "offer_id",
                     "type": "uint64"
                 }
             ]
@@ -79,6 +81,24 @@
                 {
                     "name": "memo",
                     "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "asset_ex",
+            "base": "",
+            "fields": [
+                {
+                    "name": "author",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "assettype",
+                    "type": "assettype_t"
                 }
             ]
         },
@@ -125,6 +145,24 @@
             ]
         },
         {
+            "name": "condition",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "string"
+                },
+                {
+                    "name": "operation",
+                    "type": "string"
+                },
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
             "name": "conditions",
             "base": "",
             "fields": [
@@ -150,7 +188,71 @@
                 },
                 {
                     "name": "aconditions",
-                    "type": "tuple_key_t_operation_t_value_t[]"
+                    "type": "condition[]"
+                }
+            ]
+        },
+        {
+            "name": "creategift",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "account_to",
+                    "type": "name"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "createoffer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "topropid",
+                    "type": "proposal_id_t"
+                },
+                {
+                    "name": "box_id",
+                    "type": "box_id_t"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
                 }
             ]
         },
@@ -168,31 +270,23 @@
                 },
                 {
                     "name": "fts",
-                    "type": "tuple_name_asset_assettype_t[]"
+                    "type": "asset_ex[]"
                 },
                 {
                     "name": "conditions",
-                    "type": "tuple_box_id_t_object_id_t_key_t_operation_t_value_t[]"
+                    "type": "tuple_box_id_t_object_id_t_condition[]"
                 },
                 {
                     "name": "fees",
                     "type": "exchange_fees"
                 },
                 {
-                    "name": "topropid",
-                    "type": "uint64"
-                },
-                {
                     "name": "account_to",
                     "type": "name"
                 },
                 {
-                    "name": "datestart",
-                    "type": "uint64"
-                },
-                {
-                    "name": "dateexpire",
-                    "type": "uint64"
+                    "name": "daterange",
+                    "type": "date_range"
                 },
                 {
                     "name": "auto_accept",
@@ -214,7 +308,7 @@
                 },
                 {
                     "name": "conditions",
-                    "type": "tuple_key_t_operation_t_value_t[]"
+                    "type": "condition[]"
                 }
             ]
         },
@@ -249,12 +343,44 @@
             ]
         },
         {
+            "name": "date_range",
+            "base": "",
+            "fields": [
+                {
+                    "name": "datestart",
+                    "type": "uint64"
+                },
+                {
+                    "name": "dateexpire",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "delblacklist",
             "base": "",
             "fields": [
                 {
                     "name": "blacklisted_author",
                     "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "depositprep",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
                 }
             ]
         },
@@ -343,7 +469,7 @@
                 },
                 {
                     "name": "assettype",
-                    "type": "uint64"
+                    "type": "assettype_t"
                 },
                 {
                     "name": "quantity",
@@ -351,25 +477,52 @@
                 },
                 {
                     "name": "inproposal",
-                    "type": "uint64[]"
+                    "type": "proposal_id_t[]"
                 },
                 {
                     "name": "author",
                     "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "inventorym",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
                 },
                 {
-                    "name": "category",
+                    "name": "owner",
                     "type": "name"
                 },
                 {
-                    "name": "idata",
-                    "type": "string"
+                    "name": "aid",
+                    "type": "uint64"
                 },
                 {
-                    "name": "mdata",
-                    "type": "string"
+                    "name": "assettype",
+                    "type": "assettype_t"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "inproposal",
+                    "type": "proposal_id_t[]"
+                },
+                {
+                    "name": "author",
+                    "type": "name"
                 }
             ]
+        },
+        {
+            "name": "migrate",
+            "base": "",
+            "fields": []
         },
         {
             "name": "rejectoffer",
@@ -382,6 +535,32 @@
                 {
                     "name": "offer_id",
                     "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "requestgift",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "conditions",
+                    "type": "tuple_box_id_t_object_id_t_condition[]"
+                },
+                {
+                    "name": "account_to",
+                    "type": "name"
+                },
+                {
+                    "name": "daterange",
+                    "type": "date_range"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
                 }
             ]
         },
@@ -424,12 +603,38 @@
             ]
         },
         {
+            "name": "sendgift",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "nfts",
+                    "type": "nft_id_t[]"
+                },
+                {
+                    "name": "fts",
+                    "type": "asset_ex[]"
+                },
+                {
+                    "name": "gift_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "box_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "tproposals",
             "base": "",
             "fields": [
                 {
                     "name": "id",
-                    "type": "uint64"
+                    "type": "proposal_id_t"
                 },
                 {
                     "name": "aaid",
@@ -441,11 +646,11 @@
                 },
                 {
                     "name": "nfts",
-                    "type": "uint64[]"
+                    "type": "nft_id_t[]"
                 },
                 {
                     "name": "fts",
-                    "type": "tuple_name_asset_assettype_t[]"
+                    "type": "asset_ex[]"
                 },
                 {
                     "name": "fees",
@@ -456,16 +661,12 @@
                     "type": "name"
                 },
                 {
-                    "name": "datestart",
-                    "type": "uint64"
-                },
-                {
-                    "name": "dateexpire",
-                    "type": "uint64"
+                    "name": "daterange",
+                    "type": "date_range"
                 },
                 {
                     "name": "topropid",
-                    "type": "uint64"
+                    "type": "proposal_id_t"
                 },
                 {
                     "name": "auto_accept",
@@ -478,7 +679,7 @@
             ]
         },
         {
-            "name": "tuple_box_id_t_object_id_t_key_t_operation_t_value_t",
+            "name": "tuple_box_id_t_object_id_t_condition",
             "base": "",
             "fields": [
                 {
@@ -491,51 +692,7 @@
                 },
                 {
                     "name": "field_2",
-                    "type": "key_t"
-                },
-                {
-                    "name": "field_3",
-                    "type": "operation_t"
-                },
-                {
-                    "name": "field_4",
-                    "type": "value_t"
-                }
-            ]
-        },
-        {
-            "name": "tuple_key_t_operation_t_value_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "field_0",
-                    "type": "key_t"
-                },
-                {
-                    "name": "field_1",
-                    "type": "operation_t"
-                },
-                {
-                    "name": "field_2",
-                    "type": "value_t"
-                }
-            ]
-        },
-        {
-            "name": "tuple_name_asset_assettype_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "field_0",
-                    "type": "name"
-                },
-                {
-                    "name": "field_1",
-                    "type": "asset"
-                },
-                {
-                    "name": "field_2",
-                    "type": "assettype_t"
+                    "type": "condition"
                 }
             ]
         },
@@ -553,7 +710,7 @@
                 },
                 {
                     "name": "conditions",
-                    "type": "tuple_key_t_operation_t_value_t[]"
+                    "type": "condition[]"
                 }
             ]
         },
@@ -571,15 +728,20 @@
                 },
                 {
                     "name": "fts",
-                    "type": "tuple_name_asset_assettype_t[]"
+                    "type": "asset_ex[]"
                 }
             ]
         }
     ],
     "actions": [
         {
-            "name": "acceptprop",
-            "type": "acceptprop",
+            "name": "acceptgift",
+            "type": "acceptgift",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "acceptoffer",
+            "type": "acceptoffer",
             "ricardian_contract": ""
         },
         {
@@ -598,6 +760,16 @@
             "ricardian_contract": ""
         },
         {
+            "name": "creategift",
+            "type": "creategift",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "createoffer",
+            "type": "createoffer",
+            "ricardian_contract": ""
+        },
+        {
             "name": "createprop",
             "type": "createprop",
             "ricardian_contract": ""
@@ -613,6 +785,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "depositprep",
+            "type": "depositprep",
+            "ricardian_contract": ""
+        },
+        {
             "name": "getbalance",
             "type": "getbalance",
             "ricardian_contract": ""
@@ -623,8 +800,23 @@
             "ricardian_contract": ""
         },
         {
+            "name": "migrate",
+            "type": "migrate",
+            "ricardian_contract": ""
+        },
+        {
             "name": "rejectoffer",
             "type": "rejectoffer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "requestgift",
+            "type": "requestgift",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "sendgift",
+            "type": "sendgift",
             "ricardian_contract": ""
         },
         {
@@ -672,6 +864,13 @@
         {
             "name": "sinventory",
             "type": "inventory",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "sinventorym",
+            "type": "inventorym",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

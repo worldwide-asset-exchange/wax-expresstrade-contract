@@ -14,12 +14,16 @@ using namespace std;
 #define WAX_CHAIN
 bool hasLogging = true;
 
-const name SIMPLEASSETS_CONTRACT   = "simpleassets"_n; 
-const name EOSIO_TOKEN             = "eosio.token"_n;
-const name AFFILIATE_BANK          = "affiliateban"_n;
-const name COMMUNITY_FEE_ACCOUNT   = "communityfee"_n;
+const name SIMPLEASSETS_CONTRACT = "simpleassets"_n;
+const name EOSIO_TOKEN = "eosio.token"_n;
+const name AFFILIATE_BANK = "affiliateban"_n;
+const name COMMUNITY_FEE_ACCOUNT = "communityfee"_n;
 
-enum token_type {SA_NFT = 0, SA_FT = 1, TOKEN = 2};
+enum token_type { SA_NFT = 0, SA_FT = 1, TOKEN = 2 };
+
+enum proposal_type { proposal = 0, offer = 1 };
+
+enum match { no_need_match = -1, failed_match = 0, has_match = 1 };
 
 typedef uint64_t box_id_t;
 typedef uint64_t object_id_t;
@@ -30,28 +34,38 @@ typedef string   key_t;
 typedef string   operation_t;
 typedef string   value_t;
 typedef uint64_t amount_t;
+typedef uint64_t proposal_id_t;
 
-
-const uint8_t  FEE_PRECISION        = 2;
+const uint8_t  FEE_PRECISION = 2;
 const uint16_t FEE_PRECISION_AMOUNT = 100;
-const uint16_t FEE_MAX              = 10 * FEE_PRECISION_AMOUNT;
-const uint16_t AUTHOR_FEE_MAX       = 5  * FEE_PRECISION_AMOUNT;
+const uint16_t FEE_MAX = 10 * FEE_PRECISION_AMOUNT;
+const uint16_t AUTHOR_FEE_MAX = 5 * FEE_PRECISION_AMOUNT;
 
-const uint16_t COMMUNITY_FEE        = 10 * FEE_PRECISION_AMOUNT;
-const uint8_t  PERCENT100           = 100;
-const uint16_t MEMO_MAX_SIZE        = 256;
-const uint64_t INACTIVE_OFFSET      = 1000000;
-const string   authorFeeTagName     = "defaultfee";
+const uint16_t COMMUNITY_FEE = 10 * FEE_PRECISION_AMOUNT;
+const uint8_t  PERCENT100 = 100;
+const uint16_t MEMO_MAX_SIZE = 256;
+const uint64_t INACTIVE_OFFSET = 1000000;
+const string   authorFeeTagName = "defaultfee";
+const uint64_t MAX_PROPOSALS_PER_NFT = 20;
+const uint64_t MAX_PROPOSALS_PER_FT = 40;
+const uint8_t  FIRST_INDEX = 1;
 
 #ifdef WAX_CHAIN
-	const string SYMBOL_NAME = "WAX";
-	const int PRECISION = 8;
+const string SYMBOL_NAME = "WAX";
+const int PRECISION = 8;
 #else
 #ifdef EOS_CHAIN
-	const string SYMBOL_NAME = "EOS";
-	const int PRECISION = 4;
+const string SYMBOL_NAME = "EOS";
+const int PRECISION = 4;
 #endif
 #endif
+
+struct condition
+{
+	string key;
+	string operation;
+	string value;
+};
 
 struct asset_ex
 {
@@ -142,10 +156,12 @@ void split(const string& subject, vector<string>& container)
 	delete[] s;
 }
 
-auto find_condition(const vector<tuple<key_t, operation_t, value_t>>& aconditions, const string& condition_key)
+auto find_condition(const vector<condition>& aconditions, const string& condition_key)
 {
 	const auto& it = find_if(aconditions.begin(), aconditions.end(),
-		[&](const tuple<key_t, operation_t, value_t>& one_condition) { return get<0>(one_condition) == condition_key; });
+		[&](const condition& one_condition) { return one_condition.key == condition_key; });
 
-	return (it != aconditions.end()) ? optional<tuple<key_t, operation_t, value_t>>(*it) : std::nullopt;
+	return (it != aconditions.end()) ? optional<condition>(*it) : std::nullopt;
 }
+
+

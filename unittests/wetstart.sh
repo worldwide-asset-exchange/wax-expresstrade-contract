@@ -1,11 +1,21 @@
 #--------------------------------------------------------------------- CREATE ACCEPT PROPOSAL -------------------------------------------------------------------------------
 
-#./wetwax_body.sh barter111111 ACCOUNT1_PROPOSAL ACCOUNT2_ACCEPTING_PROPOSAL AMOUNT_THAT_WANT_ACCOUNT1_FROM_ACCOUNT2 SYMBOL_FOR_AMOUNT AUTHOR_FOR_AMOUNT      AUTHOR_OF_NFT_PROPOSED_FROM_ACCOUNT1 NFT_ID          TEST_NUMBER
-#./wetwax_body.sh barter111111 alexnag1tran      alexplayer11                1.1111                                   EOS              eosio.token            alexnag1tran                         100000000004192 1
+#./wetwax_body.sh barter222222 ACCOUNT1_PROPOSAL ACCOUNT2_ACCEPTING_PROPOSAL AMOUNT_THAT_WANT_ACCOUNT1_FROM_ACCOUNT2 SYMBOL_FOR_AMOUNT AUTHOR_FOR_AMOUNT      AUTHOR_OF_NFT_PROPOSED_FROM_ACCOUNT1 NFT_ID          TEST_NUMBER
+#./wetwax_body.sh barter222222 alexnag1tran      alexplayer11                1.1111                                   EOS              eosio.token            alexnag1tran                         100000000004192 1
 
-./wetwax_body.sh barter111111 alexnag1tran alexplayer11 1.1111 EOS eosio.token alexnag1tran 100000000004241 1
+#GOLD test
+#./wetwax_body.sh barter111111 alexnag1tran alexplayer11 10.50 GOLD alexplayer11 alexnag1tran 100000000004241 1
+#./wetwax_body.sh barter111111 alexplayer11 alexnag1tran 10.50 GOLD alexplayer11 alexnag1tran 100000000004241 1
 
-./wetwax_body.sh barter111111 alexplayer11 alexnag1tran 1.1111 EOS eosio.token alexnag1tran 100000000004241 1
+#EOS Test
+#./wetwax_body.sh barter111111 alexnag1tran alexplayer11 1.1111 EOS eosio.token alexnag1tran 100000000004241 1
+#./wetwax_body.sh barter111111 alexplayer11 alexnag1tran 1.1111 EOS eosio.token alexnag1tran 100000000004241 1
+
+
+#---- TEST
+./wetwax_body.sh barter222222 alexnag1tran alexplayer11 1.1111 EOS eosio.token alexnag1tran 100000000000025 1
+./wetwax_body.sh barter222222 alexplayer11 alexnag1tran 1.1111 EOS eosio.token alexnag1tran 100000000000025 1
+#---- TEST
 
 #--------------------------------------------------------------------- CREATE CANCEL PROPOSAL -------------------------------------------------------------------------------
 
@@ -13,8 +23,8 @@
 
 #--------------------------------------------------------------------- CREATE PROPOSAL CREATE OFFER ACCEPT OFFER ------------------------------------------------------------
 
-#./wetwax_body.sh barter111111 alexnag1tran alexplayer11 1.1111 EOS eosio.token alexnag1tran 100000000004192 3
-#./wetwax_body.sh barter111111 alexplayer11 alexnag1tran 1.1111 EOS eosio.token alexnag1tran 100000000004192 3
+./wetwax_body.sh barter222222 alexnag1tran alexplayer11 1.1111 EOS eosio.token alexnag1tran 100000000000025 3
+./wetwax_body.sh barter222222 alexplayer11 alexnag1tran 1.1111 EOS eosio.token alexnag1tran 100000000000025 3
 
 #--------------------------------------------------------------------- DEPOSIT FT  ------------------------------------------------------------
 

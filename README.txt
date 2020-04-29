@@ -11,6 +11,24 @@
 
  - Additions to CMake should be done to the CMakeLists.txt in the './src' directory and not in the top level CMakeLists.txt
 
+----------------- WAX WET 2.0 migration important steps -----------------
+
+Before deploying need to do migration
+
+1) deploy wasm from folder Migration1
+build\Migration\Migration1
+and call action migrate
+./cleos.sh  --verbose push action waxexpresstrade migrate '[]' -p alexplayer11
+
+2) deploy wasm from folder Migration2
+build\Migration\Migration2
+and call action migrateback
+./cleos.sh  --verbose push action waxexpresstrade migrateback '[]' -p alexplayer11
+
+3) deploy wasm from folder build
+build\
+continue work with this wasm 
+
 ----------------- WAX WET 2.0 Setup -----------------
 
 Important steps before deploying:

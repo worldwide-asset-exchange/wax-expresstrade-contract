@@ -71,12 +71,29 @@ function READ_LAST_SCONDITIONS
 
 #ACC_1
 
+function CREATE_PROPOSAL_FOR_3_STEPS_ACCEPT
+{
+	echo "---------------------------------------------- createprop -----------------------------------------------------"
+	sleep $WAIT_TIME
+
+	./cleos.sh  --verbose push action $BARTER createprop '{ "owner":"'${ACC_1}'", "nfts":[], "fts":[["'${FT_AUTHOR}'", "'${FT_AMOUNT}' '${FT_SYMBOL}'", 2]], "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  ,"conditions": [[1,1,["author","=","'${NFT_AUTHOR}'"]], [1,1,["assettype","=",0]] ,[1,1,["category","=","tst"]]], "account_to":"", "daterange":{"datestart":0, "dateexpire":0} , "auto_accept":false, "memo":"" }' -p $ACC_1@active
+}
+
 function CREATE_PROPOSAL
 {
 	echo "---------------------------------------------- createprop -----------------------------------------------------"
 	sleep $WAIT_TIME
 
-	./cleos.sh  --verbose push action $BARTER createprop '{ "owner":"'${ACC_1}'", "nfts":['${NFT_ID}'], "fts":[], "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  ,"conditions": [[1, 1, "author","=","'${FT_AUTHOR}'"], [1, 1, "assettype","=","1"], [1, 1, "quantity","=","'${FT_AMOUNT}' '${FT_SYMBOL}'"]], "topropid":0, "account_to":"", "datestart":0, "dateexpire":0, "auto_accept":true, "memo":"" }' -p $ACC_1@active
+	./cleos.sh  --verbose push action $BARTER createprop '{ "owner":"'${ACC_1}'", "nfts":[], "fts":[["'${FT_AUTHOR}'", "'${FT_AMOUNT}' '${FT_SYMBOL}'", 2]], "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  ,"conditions": [[1,1,["author","=","'${NFT_AUTHOR}'"]], [1,1,["assettype","=",0]] ,[1,1,["category","=","tst"]]], "account_to":"", "daterange":{"datestart":0, "dateexpire":0} , "auto_accept":true, "memo":"" }' -p $ACC_1@active
+}
+
+#ACC_2
+function ACCEPT_PROPOSAL_ACC2
+{
+	echo "---------------------------------------------- accept proposal -----------------------------------------------------"
+
+	sleep $WAIT_TIME
+	./cleos.sh --verbose push action $BARTER acceptprop '{ "owner":"'${ACC_2}'", "nfts":['${NFT_ID}'], "proposal_id": '${result_proposal_id}', "box_id":1}' -p $ACC_2@active
 }
 
 function REJECT_OFFER
@@ -101,6 +118,14 @@ function CREATE_OFFER
 	echo "---------------------------------------------- create offer -----------------------------------------------------"
 	sleep $WAIT_TIME
 
+	./cleos.sh --verbose push action $BARTER createoffer '{ "owner":"'${ACC_2}'", "nfts":[], "fts":[["'${FT_AUTHOR}'", "2.2222 '${FT_SYMBOL}'", 2]], "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  ,"conditions": [[1,1,["author","=","'${NFT_AUTHOR}'"]], [1, 1, ["assettype","=","0"]] , [1,1,["id","=","'${NFT_ID}'"]]], "topropid":'${result_proposal_id}', "daterange":{"datestart":0, "dateexpire":0} , "auto_accept":true , "memo":"" }' -p $ACC_2@active
+}
+
+function CREATE_OFFER
+{
+	echo "---------------------------------------------- create offer -----------------------------------------------------"
+	sleep $WAIT_TIME
+
 	./cleos.sh --verbose push action $BARTER createprop '{ "owner":"'${ACC_2}'", "nfts":[], "fts":[["'${FT_AUTHOR}'", "2.2222 '${FT_SYMBOL}'", 1]], "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  ,"conditions": [[1,1,"author","=","'${NFT_AUTHOR}'"], [1, 1, "assettype","=","1"] , [1,1,"id","=","'${NFT_ID}'"]], "topropid":'${result_proposal_id}', "account_to":"", "datestart":0, "dateexpire":0, "auto_accept":true , "memo":"" }' -p $ACC_2@active
 }
 
@@ -112,6 +137,14 @@ function ACCEPT_OFFER
 
 	sleep $WAIT_TIME
 	./cleos.sh --verbose push action $BARTER acceptprop '{ "owner":"'${ACC_1}'", "proposal_id": '${result_offer_id}', "box_id":1}' -p $ACC_1@active
+}
+
+function ACCEPT_OFFER
+{
+	echo "---------------------------------------------- accept offer -----------------------------------------------------"
+
+	sleep $WAIT_TIME
+	./cleos.sh --verbose push action $BARTER acceptoffer '{ "owner":"'${ACC_1}'", "offer_id": '${result_offer_id}', "box_id":1}' -p $ACC_1@active
 }
 
 
@@ -165,9 +198,7 @@ function TEST_ACCEPT_PROPOSAL
 	GET_BALANCES
 
 	echo "---------------------------------------------- after -----------------------------------------------------"
-
 	PRINT_BALANCES
-
 	echo "---------------------------------------------- END TEST_ACCEPT_PROPOSAL -----------------------------------------------------"
 }
 
@@ -186,7 +217,6 @@ function PRINT_BALANCE2
 {
 	echo "Balance for " ${ACC_2} " : " ${BALANCE2}
 }
-
 
 function CANCEL_PROPOSAL
 {
@@ -238,11 +268,11 @@ function TEST_CREATE_PROPOSAL_CREATE_OFFER_ACCEPT_OFFER
 {
 	echo "---------------------------------------------- START TEST_CREATE_PROPOSAL_CREATE_OFFER_ACCEPT_OFFER ---------------------------------------------------"
 
-	CREATE_PROPOSAL
+	CREATE_PROPOSAL_FOR_3_STEPS_ACCEPT
 	
 	READ_LAST_PROPOSAL
 
-	echo "-proposal_id-: " ${result_proposal_id}
+	echo "-proposal_id-:  " ${result_proposal_id}
 	echo "proposal_owner: " ${proposal_owner}
 	sleep $WAIT_TIME
 
@@ -284,8 +314,6 @@ function TEST_DEPOSIT_FT
 	CREATEF_GOLD_FOR_ACC1
 	TRANSFERF_GOLD_FOR_ACC1
 
-	#./cleos.sh push action simpleassets transferf '{"from":"'${ACC_1}'", "to":"'${BARTER}'", "author":"'${FT_AUTHOR}'", "quantity":"'${FT_AMOUNT}' '${FT_SYMBOL}'", "memo":"memo_here"}' -p $ACC_1@active
-
 	PRINT_BALANCE1
 	GET_BALANCE1
 	PRINT_BALANCE1
@@ -296,6 +324,10 @@ function TEST_DEPOSIT_NFT
 {
 	echo "---------------------------------------------- TEST_DEPOSIT_NFT -----------------------------------------------------"
 
+	sleep $WAIT_TIME
+	./cleos.sh push action $BARTER depositprep '{ "owner":"'${ACC_1}'", "nfts":['${NFT_ID}'], "fts":[]  }' -p $ACC_1@active
+
+	sleep $WAIT_TIME
 	./cleos.sh push action simpleassets transfer '{ "from":"'${ACC_1}'", "to":"'${BARTER}'" , "assetids":['${NFT_ID}'], "memo":"" }' -p $ACC_1@active
 
 	./cleos.sh get table $BARTER $BARTER sinventory -r -l 1
@@ -309,6 +341,10 @@ function TEST_DEPOSIT_WITHDRAW_FT
 
 	GET_BALANCE1
 
+	sleep $WAIT_TIME
+	./cleos.sh push action $BARTER depositprep '{ "owner":"'${ACC_1}'", "nfts":[], "fts":[["'${FT_AUTHOR}'", "'${FT_AMOUNT}' '${FT_SYMBOL}'", 1]]  }' -p $ACC_1@active
+
+	sleep $WAIT_TIME
 	./cleos.sh push action simpleassets transferf '{"from":"'${ACC_1}'", "to":"'${BARTER}'", "author":"'${FT_AUTHOR}'", "quantity":"'${FT_AMOUNT}' '${FT_SYMBOL}'", "memo":"memo_here"}' -p $ACC_1@active
 
 	PRINT_BALANCE1
@@ -330,12 +366,22 @@ function TEST_DEPOSIT_WITHDRAW_NFT
 {
 	echo "---------------------------------------------- TEST_DEPOSIT_WITHDRAW_NFT -----------------------------------------------------"
 
+	sleep $WAIT_TIME
+	echo "- depositprep -"
+	./cleos.sh push action $BARTER depositprep '{ "owner":"'${ACC_1}'", "nfts":['${NFT_ID}'], "fts":[]  }' -p $ACC_1@active
+
+	sleep $WAIT_TIME
+	echo "- transfer -"
 	./cleos.sh push action simpleassets transfer '{ "from":"'${ACC_1}'", "to":"'${BARTER}'" , "assetids":['${NFT_ID}'], "memo":"" }' -p $ACC_1@active
 
+	sleep $WAIT_TIME
 	./cleos.sh get table $BARTER $BARTER sinventory -r -l 1
 
+	sleep $WAIT_TIME
+	echo "- withdraw -"
 	./cleos.sh --verbose push action $BARTER withdraw '{ "owner":"'${ACC_1}'", "nfts":['${NFT_ID}'] , "fts":[] }' -p $ACC_1@active
 
+	sleep $WAIT_TIME
 	./cleos.sh get table $BARTER $BARTER sinventory -r -l 1
 
 	echo "---------------------------------------------- END TEST_DEPOSIT_WITHDRAW_NFT --------------------------------------------------"
@@ -399,6 +445,9 @@ function CREATEF_GOLD_FOR_ACC1
 function TRANSFERF_GOLD_FOR_ACC1
 {
 	sleep $WAIT_TIME
+	./cleos.sh push action $BARTER depositprep '{ "owner":"'${ACC_1}'", "nfts":[], "fts":[["'${ACC_1}'", "1.00 GOLD", 1]]  }' -p $ACC_1@active
+
+	sleep $WAIT_TIME
 	./cleos.sh push action simpleassets transferf '{"from":"'${ACC_1}'", "to":"'${BARTER}'", "author":"'${ACC_1}'", "quantity":"1.00 GOLD", "memo":"memo_here"}' -p $ACC_1@active
 }
 
@@ -413,14 +462,15 @@ function CREATE_NFT_FOR_ACC2
 
 function TRANSFER_NFT_FOR_ACC2
 {
+	sleep $WAIT_TIME
+	./cleos.sh push action $BARTER depositprep '{ "owner":"'${ACC_1}'", "nfts":['${asset_id}'], "fts":[]  }' -p $ACC_1@active
+
+	sleep $WAIT_TIME
 	./cleos.sh push action simpleassets transfer '{ "from":"'${ACC_2}'", "to":"'${BARTER}'" , "assetids":['${asset_id}'], "memo":"" }' -p $ACC_2@active
 }
 
 function TEST_MDATA
 {
-	# before_asset_id=$(./cleos.sh get table simpleassets $ACC_2 sassets -r -l 1 | jq -r '.rows[].id')
-	# echo "before_asset_id: " ${before_asset_id}
-
 	CREATE_NFT_FOR_ACC2
 	TRANSFER_NFT_FOR_ACC2
 
@@ -428,7 +478,6 @@ function TEST_MDATA
 
 	CREATEF_GOLD_FOR_ACC1
 	TRANSFERF_GOLD_FOR_ACC1
-
 
 	CREATE_PROPOSAL_MDATA_ACC1
 
@@ -442,9 +491,8 @@ function CREATE_PROPOSAL_MDATA_ACC1
 	echo "---------------------------------------------- createprop -----------------------------------------------------"
 	sleep $WAIT_TIME
 
-	./cleos.sh --verbose push action $BARTER createprop '{ "owner":"'${ACC_1}'", "nfts":[], "fts":[["'${ACC_1}'", "1.00 GOLD", 1]], "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  ,"conditions": [[1 , 1, "author","=","'${ACC_2}'"], [1 , 1, "assettype","=","1"], [1, 1, "mdata.category.category.category","=","333"]], "topropid":0, "account_to":"", "datestart":0, "dateexpire":0, "auto_accept":true, "memo":"" }' -p $ACC_1@active
+	./cleos.sh --verbose push action $BARTER createprop '{ "owner":"'${ACC_1}'", "nfts":[], "fts":[["'${ACC_1}'", "1.00 GOLD", 1]], "fees":{"exchange": "name","exchange_fee": 10,"affiliate_id": 20,"affiliate_fee": 30}  ,"conditions": [[1 , 1, "author","=","'${ACC_2}'"], [1 , 1, "assettype","=","1"], [1, 1, "mdata.category.category.category","=","333"]], "account_to":"", "daterange":{"datestart":0, "dateexpire":0}, "auto_accept":true, "memo":"" }' -p $ACC_1@active
 }
-
 
 function TEST_CREATEWISH_CANCELWISH
 {
