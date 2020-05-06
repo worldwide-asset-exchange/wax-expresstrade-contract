@@ -190,6 +190,11 @@ ACTION wax_express_trade::sendgift(name owner, const vector<nft_id_t>& nfts, con
 ACTION wax_express_trade::createprop(name owner, const vector<nft_id_t>& nfts, const vector<asset_ex>& fts, const vector<tuple<box_id_t, object_id_t, condition>>& conditions, exchange_fees fees, name account_to, date_range daterange, bool auto_accept, string memo)
 {
 	require_auth(owner);
+
+	if (is_account(account_to)) {
+		require_recipient(account_to);
+	}
+
 	check(!(nfts.size() == 0 && fts.size() == 0 && conditions.size() == 0), must_be_at_least_one + warning_one_condition + "or" + errorEmptyFT_NFT);
 
 	create_proposal(owner, nfts, fts, conditions, fees, account_to, 0, daterange, auto_accept, memo);
