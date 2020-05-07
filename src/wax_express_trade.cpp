@@ -47,7 +47,7 @@ void wax_express_trade::create_conditions(const name& owner, const uint64_t& pro
 		const auto &aconditions = itr_map->second;
 
 		sconditions_.emplace(get_self(), [&](auto& g) {
-			g.id = sconditions_.available_primary_key();
+			g.id = getid();
 			g.owner = owner;
 			g.proposalid = proposal_id;
 			g.boxid = box_id;
@@ -82,7 +82,7 @@ ACTION wax_express_trade::createwish(name owner, vector<condition>& wish_conditi
 	check(!(wish_conditions.size() == 0), must_be_at_least_one + warning_one_condition);
 
 	swish_.emplace(get_self(), [&](auto& g) {
-		g.id = swish_.available_primary_key();
+		g.id = getid();
 		g.owner = owner;
 		g.conditions = wish_conditions;
 	});
@@ -227,7 +227,7 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 	// logic check for condition
 	checker.syntaxis_checker(mapconditions, isoffer);
 
-	const auto new_proposal_id = stproposals_.available_primary_key() == 0 ? FIRST_INDEX : stproposals_.available_primary_key();
+	const auto new_proposal_id = getid();
 
 	create_conditions(owner, new_proposal_id, mapconditions);
 
@@ -504,7 +504,7 @@ ACTION wax_express_trade::depositprep(name owner, vector<nft_id_t>& nfts, vector
 
 		if (itr_aid == aid_index.end() || (itr_aid != aid_index.end() && itr_aid->aid != nft_id))
 		{
-			const auto & id = sinventory_.available_primary_key();
+			const auto & id = getid();
 			if (hasLogging) {
 				print("sinventory_.emplace nft_id: ", nft_id, " inventory id: ", id);
 			}
@@ -559,7 +559,7 @@ ACTION wax_express_trade::depositprep(name owner, vector<nft_id_t>& nfts, vector
 		{
 			quantity.amount = 0;
 
-			const auto & id = sinventory_.available_primary_key();
+			const auto & id = getid();
 			if (hasLogging) {
 				print("sinventory_.emplace quantity: ", quantity, " inventory id: ", id);
 			}
@@ -742,6 +742,18 @@ ACTION wax_express_trade::getbalance(name owner, name author, string sym)
 		}
 	}
 }
+
+uint64_t wax_express_trade::getid()
+{
+	conf config(_self, _self.value);
+	_cstate = config.exists() ? config.get() : global{};
+	_cstate.lastid++;
+	config.set(_cstate, _self);
+
+	return _cstate.lastid;
+}
+
+
 //#define DEBUG
 
 #ifdef DEBUG

@@ -452,6 +452,16 @@
             "fields": []
         },
         {
+            "name": "global",
+            "base": "",
+            "fields": [
+                {
+                    "name": "lastid",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "inventory",
             "base": "",
             "fields": [
@@ -785,6 +795,13 @@
         {
             "name": "accounts",
             "type": "account",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "global",
+            "type": "global",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

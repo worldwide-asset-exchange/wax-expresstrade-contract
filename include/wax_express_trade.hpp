@@ -147,6 +147,7 @@ private:
 	bool try_accept_proposal(name owner, proposal_id_t topropid, uint64_t box_id, const vector<nft_id_t>& nfts, const vector<asset_ex>& fts);
 	void create_proposal(name owner, const vector<nft_id_t>& nfts, const vector<asset_ex>& fts, const vector<tuple<box_id_t, object_id_t, condition>>& conditions, exchange_fees fees, name account_to, proposal_id_t topropid, date_range daterange, bool auto_accept, string memo);
 	void accept_offer_or_gift(name owner, uint64_t offer_id, bool isgift);
+	uint64_t getid();
 
 	public:
 
@@ -352,6 +353,19 @@ private:
 	typedef eosio::multi_index< "sassets"_n, sasset,
 		eosio::indexed_by< "author"_n, eosio::const_mem_fun< sasset, uint64_t, &sasset::by_author > >
 	> sassets;
+
+	/*
+	* global singelton table, used for id building. Scope: self
+	*/
+	TABLE global{
+		global() {}
+		uint64_t lastid = 1000000000;
+		EOSLIB_SERIALIZE(global, (lastid))
+	};
+
+	typedef eosio::singleton< "global"_n, global > conf; /// singleton
+	global _cstate; /// global state
+
 };
 
 extern "C"
