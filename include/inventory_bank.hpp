@@ -69,6 +69,10 @@ public:
 				const auto& itr = sinventory_.find(itrmynventory->id);
 				if (itr != sinventory_.end())
 				{
+					check(!(quantity.symbol.precision() != itrmynventory->quantity.symbol.precision()), "Incorrect precision. You entered quantity with precision: "
+							+ to_string(quantity.symbol.precision()) + ". At inventory precision: " + to_string(itrmynventory->quantity.symbol.precision())
+							+ ". For author: " + itrmynventory->author.to_string() + " asset: " + itrmynventory->quantity.to_string());
+
 					// activate inactive asset and change balance
 					sinventory_.modify(itr, get_self(), [&](auto& s) {
 						s.assettype -= INACTIVE_OFFSET;
@@ -83,6 +87,11 @@ public:
 				if (itr != sinventory_.end())
 				{
 					if (hasLogging) { print("\n Deposit of owner " + itr->owner.to_string() + " before modify itr->quantity:  ", itr->quantity); }
+
+					check(!(quantity.symbol.precision() != itrmynventory->quantity.symbol.precision()), "Incorrect precision. You entered quantity with precision: "
+						+ to_string(quantity.symbol.precision()) + ". At inventory precision: " + to_string(itrmynventory->quantity.symbol.precision())
+						+ ". For author: " + itrmynventory->author.to_string() + " asset: " + itrmynventory->quantity.to_string());
+
 
 					sinventory_.modify(itr, get_self(), [&](auto& s) {
 						s.quantity.amount += quantity.amount;

@@ -833,6 +833,7 @@ ACTION wax_express_trade::delproposal(name owner, uint64_t inventory_id)
 
 ACTION wax_express_trade::delinventory(name owner, uint64_t inventory_id)
 {
+	require_auth(get_self());
 	// delete all proposals and condition for inventory item
 	//require_auth(owner);
 
@@ -840,7 +841,7 @@ ACTION wax_express_trade::delinventory(name owner, uint64_t inventory_id)
 	// find item in inventory table
 	const auto& itr_inventory = sinventory_.find(inventory_id);
 	check(!(itr_inventory == sinventory_.end()), "Inventory id " + to_string(inventory_id) + " does not exist");
-	check(!(itr_inventory->owner != owner), owner.to_string() + " is not owner of inventory id: " + to_string(inventory_id) + ". Owner is " + itr_inventory->owner.to_string());
+	//check(!(itr_inventory->owner != owner), owner.to_string() + " is not owner of inventory id: " + to_string(inventory_id) + ". Owner is " + itr_inventory->owner.to_string());
 
 	acceptor_.remove_all_proposals_for_inventory_item(inventory_id);
 	sinventory_.erase(itr_inventory);
