@@ -367,6 +367,16 @@
             ]
         },
         {
+            "name": "delinventory",
+            "base": "",
+            "fields": [
+                {
+                    "name": "inventory_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "depositprep",
             "base": "",
             "fields": [
@@ -753,6 +763,11 @@
         {
             "name": "delblacklist",
             "type": "delblacklist",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delinventory",
+            "type": "delinventory",
             "ricardian_contract": ""
         },
         {

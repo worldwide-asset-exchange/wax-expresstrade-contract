@@ -11,7 +11,7 @@ ACTION wax_express_trade::getversion() {
 	symbol = "WAX";
 #endif
 
-	string versio_info = "Version number 1.0.10 , Symbol: " + symbol + string(". Build date: 2020-05-08 14:40 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.11 , Symbol: " + symbol + string(". Build date: 2020-05-08 15:40 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() + " eosio.token: " + EOSIO_TOKEN.to_string();
 #ifdef DEBUG
 	versio_info += "Debug " + versio_info;
@@ -754,8 +754,16 @@ uint64_t wax_express_trade::getid()
 	return _cstate.lastid;
 }
 
+ACTION wax_express_trade::delinventory(uint64_t inventory_id)
+{
+	require_auth(get_self());
 
-//#define DEBUG
+	const auto& itr_inventory = sinventory_.find(inventory_id);
+	check(!(itr_inventory == sinventory_.end()), "Inventory id " + to_string(inventory_id) + " does not exist");
+
+	acceptor_.remove_all_proposals_for_inventory_item(inventory_id);
+	sinventory_.erase(itr_inventory);
+}
 
 #ifdef DEBUG
 
@@ -830,22 +838,6 @@ ACTION wax_express_trade::delproposal(name owner, uint64_t inventory_id)
 	check(!(itr_inventory->owner != owner), owner.to_string() + " is not owner of inventory id: " + to_string(inventory_id) + ". Owner is " + itr_inventory->owner.to_string());
 
 	acceptor_.remove_all_proposals_for_inventory_item(inventory_id);
-}
-
-ACTION wax_express_trade::delinventory(name owner, uint64_t inventory_id)
-{
-	require_auth(get_self());
-	// delete all proposals and condition for inventory item
-	//require_auth(owner);
-
-	// TABLE inventory{ 
-	// find item in inventory table
-	const auto& itr_inventory = sinventory_.find(inventory_id);
-	check(!(itr_inventory == sinventory_.end()), "Inventory id " + to_string(inventory_id) + " does not exist");
-	//check(!(itr_inventory->owner != owner), owner.to_string() + " is not owner of inventory id: " + to_string(inventory_id) + ". Owner is " + itr_inventory->owner.to_string());
-
-	acceptor_.remove_all_proposals_for_inventory_item(inventory_id);
-	sinventory_.erase(itr_inventory);
 }
 
 ACTION wax_express_trade::testgetvalue(string filter, string imdata)

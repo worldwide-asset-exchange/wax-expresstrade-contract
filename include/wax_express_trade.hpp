@@ -81,6 +81,9 @@ CONTRACT wax_express_trade : public contract{
 	  ACTION getversion();
 	  using getversion_action = action_wrapper<"getversion"_n, &wax_express_trade::getversion>;
 
+	  ACTION delinventory(uint64_t inventory_id);
+	  using delinventory_action = action_wrapper<"delinventory"_n, &wax_express_trade::delinventory>;
+
 	  void receiveToken(name from, name to, asset quantity, string memo);
 	  void receiveASSET(name from, name to, vector<uint64_t>& assetids, string memo);
 	  void receiveASSETF(name from, name to, name author, asset quantity, string memo);
@@ -97,9 +100,6 @@ public:
 
 	ACTION changetype(name owner, uint64_t inventory_id, uint64_t assettype);
 	using changetype_action = action_wrapper<"changetype"_n, &wax_express_trade::changetype>;
-
-	ACTION delinventory(name owner, uint64_t inventory_id);
-	using delinventory_action = action_wrapper<"delinventory"_n, &wax_express_trade::delinventory>;
 
 	ACTION delproposal(name owner, uint64_t inventory_id);
 	using delproposal_action = action_wrapper<"delproposal"_n, &wax_express_trade::delproposal>;
@@ -391,7 +391,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
 #ifdef DEBUG
 			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(delcondition)(delproposal)(datamatch)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition)(tstfee)(depositprep)(tstautfee)(acceptgift)(creategift)(requestgift)(sendgift)(isgift))
 #else
-			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(rejectoffer)(getbalance)(createwish)(cancelwish)(getversion)(delblacklist)(addblacklist)(depositprep)(acceptgift)(creategift)(requestgift)(sendgift))
+			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(rejectoffer)(getbalance)(createwish)(cancelwish)(getversion)(delblacklist)(addblacklist)(depositprep)(acceptgift)(creategift)(requestgift)(sendgift)(delinventory))
 #endif
 		}
 	}
