@@ -42,6 +42,8 @@ public:
 
 	void clean_proposals_offers_conditions()
 	{
+		check(!(proposal_id == 0), "Internal error. proposal id = 0");
+
 		// remove all proposals and offers that connected with fts
 		clean_proposal(proposal_id);
 
@@ -61,6 +63,7 @@ public:
 		bool item_exist = false;
 		optional<name> nft_author = std::nullopt;
 
+		// transfering gift no need to pay for it 
 		if (proposal_id_seller != 0)
 		{
 			nft_author = get_nft_author(proposal_id_seller);
@@ -195,13 +198,15 @@ public:
 
 	}
 
-	bool is_proposal_gift(const uint64_t& proposal_id, const uint64_t& topropid)
+	bool is_proposal_gift(const uint64_t& proposal_id)
 	{
+		const auto itrProposal = stproposals_.require_find(proposal_id, string("Proposal id = " + to_string(proposal_id) + " does not exist").c_str());
+
 		auto proposalid_index = sconditions_.template get_index<"proposalid"_n>();
 		auto itr_one_object_conditions = proposalid_index.find(proposal_id);
 
 		const auto isEmptyConditionList = (itr_one_object_conditions == proposalid_index.end()) || (itr_one_object_conditions != proposalid_index.end() && proposal_id != itr_one_object_conditions->proposalid);
-		const auto isoffer = topropid != 0;
+		const auto isoffer = itrProposal->topropid != 0;
 
 		// if not offer and condition list is empty
 		return (isEmptyConditionList && !isoffer);

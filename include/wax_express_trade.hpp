@@ -122,6 +122,9 @@ public:
 	ACTION tstautfee(name author);
 	using tstautfee_action = action_wrapper<"tstautfee"_n, &wax_express_trade::tstautfee>;
 
+	ACTION isgift(uint64_t proposal_id);
+	using isgift_action = action_wrapper<"isgift"_n, &wax_express_trade::isgift>;
+
 #endif 
 
 private:
@@ -386,7 +389,7 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
 
 		switch (action) {
 #ifdef DEBUG
-			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(delcondition)(delproposal)(datamatch)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition)(tstfee)(depositprep)(tstautfee)(acceptgift)(creategift)(requestgift)(sendgift))
+			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(delcondition)(delproposal)(datamatch)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition)(tstfee)(depositprep)(tstautfee)(acceptgift)(creategift)(requestgift)(sendgift)(isgift))
 #else
 			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(rejectoffer)(getbalance)(createwish)(cancelwish)(getversion)(delblacklist)(addblacklist)(depositprep)(acceptgift)(creategift)(requestgift)(sendgift))
 #endif

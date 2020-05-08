@@ -11,7 +11,7 @@ ACTION wax_express_trade::getversion() {
 	symbol = "WAX";
 #endif
 
-	string versio_info = "Version number 1.0.9 , Symbol: " + symbol + string(". Build date: 2020-04-17 14:00 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.10 , Symbol: " + symbol + string(". Build date: 2020-05-08 14:40 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() + " eosio.token: " + EOSIO_TOKEN.to_string();
 #ifdef DEBUG
 	versio_info += "Debug " + versio_info;
@@ -146,7 +146,7 @@ ACTION wax_express_trade::createoffer(name owner, const vector<nft_id_t>& nfts, 
 	check(!(itrToProp->daterange.datestart > now()), "Proposal has start date. Time to wait: " + gettimeToWait(abs((int)((uint64_t)itrToProp->daterange.datestart - (uint64_t)now()))));
 	check(!(itrToProp->daterange.dateexpire != 0 && itrToProp->daterange.dateexpire < now()), "Proposal is expired. It was expired: " + gettimeToWait(abs((int)((uint64_t)itrToProp->daterange.datestart - (uint64_t)now()))));
 
-	check(!(acceptor_.is_proposal_gift(topropid, itrToProp->topropid)), "Proposal id = " + to_string(itrToProp->topropid) + " is a gift. Use sendgift to send gift");
+	check(!(acceptor_.is_proposal_gift(topropid)), "Proposal id = " + to_string(itrToProp->topropid) + " is a gift. Use sendgift to send gift");
 
 	if (itrToProp->auto_accept == false || !try_accept_proposal(owner, topropid, box_id, nfts, fts))
 	{
@@ -167,7 +167,11 @@ ACTION wax_express_trade::requestgift(name owner, const vector<tuple<box_id_t, o
 
 ACTION wax_express_trade::acceptgift(name owner, uint64_t gift_id)
 {
-	acceptoffer(owner, gift_id);
+	require_auth(owner);
+
+	check(!(acceptor_.is_proposal_gift(gift_id) == false), "gift_id = " + to_string(gift_id) + " is not a gift. To accept it use acceptoffer action");
+
+	accept_offer_or_gift(owner, gift_id, true);
 }
 
 ACTION wax_express_trade::sendgift(name owner, const vector<nft_id_t>& nfts, const vector<asset_ex>& fts, uint64_t gift_id, uint64_t box_id)
@@ -231,7 +235,7 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 
 	create_conditions(owner, new_proposal_id, mapconditions);
 
-	if (hasLogging) { print("\n new_proposal_id :" + to_string(new_proposal_id)); }
+	if (hasLogging) { print("\n  new_proposal_id :" + to_string(new_proposal_id)); }
 
 	name last_author = name("");
 	uint64_t last_aid = 0;
@@ -242,8 +246,8 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 		const auto aid_index = sinventory_.template get_index<"aid"_n>();
 		const auto itr_aid = aid_index.find(nft_id);
 
-		check(!(itr_aid == aid_index.end()), "Wrong assetid: " + to_string(nft_id));
-		check(!(itr_aid->aid != nft_id), "Wrong assetid: " + to_string(nft_id));
+		check(!(itr_aid == aid_index.end()), "Wrong assetid:  " + to_string(nft_id));
+		check(!(itr_aid->aid != nft_id), "Wrong assetid:" + to_string(nft_id));
 		check(!(itr_aid->owner != owner), "Wrong owner for assetid: " + to_string(nft_id) + ". You entered owner: " + owner.to_string() + " but asset belong to: " + itr_aid->owner.to_string());
 
 		fees.checkfee(fee_processor.getAuthorFee(itr_aid->author));
@@ -320,15 +324,7 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 
 void wax_express_trade::accept_offer_or_gift(name owner, uint64_t offer_id, bool isgift)
 {
-	require_auth(owner);
-
 	const auto itr_offer_to_accept = stproposals_.require_find(offer_id, string("Wrong offer id: " + to_string(offer_id)).c_str());
-
-	if (!isgift)
-	{
-		const auto & is_offer = itr_offer_to_accept->topropid != 0;
-		check(!(is_offer == false), "offer_id = " + to_string(offer_id) + " is proposal, use createoffer action to accept it");
-	}
 
 	check(!(itr_offer_to_accept->owner == owner), "This offer id = " + to_string(offer_id) + " belong to you");
 	check(!(itr_offer_to_accept->daterange.datestart > now()), "Offer has start date. Time to wait: " + gettimeToWait(abs((int)((uint64_t)itr_offer_to_accept->daterange.datestart - (uint64_t)now()))));
@@ -403,6 +399,7 @@ void wax_express_trade::accept_offer_or_gift(name owner, uint64_t offer_id, bool
 
 		if (hasLogging) { print("\n ------------ move_items gifter to caller of this function ------------ \n"); }
 		acceptor_.move_items(payer, gifter, gift_receiver, gift_nft, gift_fts, exchange_fees{}, 0);
+		acceptor_.proposal_id = offer_id;
 	}
 	else
 	{
@@ -424,13 +421,17 @@ void wax_express_trade::accept_offer_or_gift(name owner, uint64_t offer_id, bool
 
 ACTION wax_express_trade::acceptoffer(name owner, uint64_t offer_id)
 {
+	require_auth(owner);
+	check(!(acceptor_.is_proposal_gift(offer_id) == true), "offer_id = " + to_string(offer_id) + " is a gift use acceptgift");
 	const auto itrOffer = stproposals_.require_find(offer_id, string("Offer id = " + to_string(offer_id) + " does not exist").c_str());
 
+	check(!(itrOffer->topropid == 0), "offer_id = " + to_string(offer_id) + " is proposal. To accept proposal use createoffer");
+
 	if (hasLogging) {
-		print("is_proposal_gift: ", acceptor_.is_proposal_gift(offer_id, itrOffer->topropid), " offer_id = ", offer_id, " itrOffer->topropid: ", itrOffer->topropid);
+		print("is_proposal_gift: ", acceptor_.is_proposal_gift(offer_id), " offer_id = ", offer_id, " itrOffer->topropid: ", itrOffer->topropid);
 	}
 
-	accept_offer_or_gift(owner, offer_id, acceptor_.is_proposal_gift(offer_id, itrOffer->topropid));
+	accept_offer_or_gift(owner, offer_id, false);
 }
 
 ACTION wax_express_trade::cancelprop(name owner, uint64_t proposal_id)
@@ -893,6 +894,12 @@ ACTION wax_express_trade::tstwithdraw(name owner, name asset_author, asset withr
 ACTION wax_express_trade::tstautfee(name author)
 {
 	print("\n getAuthorFee: ", fee_processor.getAuthorFee(author));
+}
+
+ACTION wax_express_trade::isgift(uint64_t proposal_id)
+{
+	check(!(acceptor_.is_proposal_gift(proposal_id)), "Proposal id = " + to_string(proposal_id) + " is a gift");
+	check(acceptor_.is_proposal_gift(proposal_id), "Proposal id = " + to_string(proposal_id) + " is not a gift");
 }
 
 #endif
