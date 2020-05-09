@@ -23,16 +23,16 @@ public:
 	bool hasDublicatedFT(const vector<asset_ex>& fts, string& out_dublicated_ft)
 	{
 		bool result = false;
-		set<tuple<name, asset, uint64_t>> check_dublicated_ft_set;
+		set<tuple<name, string_symbol, uint64_t>> check_dublicated_ft_set;
 
 		for (auto i = 0; i < fts.size(); i++)
 		{
-			const auto& ft = make_tuple(fts[i].author, fts[i].quantity, fts[i].assettype);
+			const auto& ft = make_tuple(fts[i].author, fts[i].quantity.symbol.code().to_string(), fts[i].assettype);
 
 			auto ret = check_dublicated_ft_set.insert(ft);
 			if (ret.second == false)
 			{
-				out_dublicated_ft = get<0>(ft).to_string() + " " + get<1>(ft).to_string() + " " + to_string(get<2>(ft));
+				out_dublicated_ft = get<0>(ft).to_string() + " " + get<1>(ft) + " " + to_string(get<2>(ft));
 				result = true;
 				break;
 			}

@@ -35,6 +35,7 @@ typedef string   operation_t;
 typedef string   value_t;
 typedef uint64_t amount_t;
 typedef uint64_t proposal_id_t;
+typedef string   string_symbol;
 
 const uint8_t  FEE_PRECISION = 2;
 const uint16_t FEE_PRECISION_AMOUNT = 100;
