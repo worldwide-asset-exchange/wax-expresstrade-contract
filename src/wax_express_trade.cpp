@@ -11,7 +11,7 @@ ACTION wax_express_trade::getversion() {
 	symbol = "WAX";
 #endif
 
-	string versio_info = "Version number 1.0.12 , Symbol: " + symbol + string(". Build date: 2020-05-09 13:00 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.13 , Symbol: " + symbol + string(". Build date: 2020-05-10 21:00 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() 
 		+ " eosio.token: " + EOSIO_TOKEN.to_string() 
 		+ " COMMUNITY_FEE_ACCOUNT: " + COMMUNITY_FEE_ACCOUNT.to_string();
@@ -173,7 +173,7 @@ ACTION wax_express_trade::acceptgift(name owner, uint64_t gift_id)
 
 	check(!(acceptor_.is_proposal_gift(gift_id) == false), "gift_id = " + to_string(gift_id) + " is not a gift. To accept it use acceptoffer action");
 
-	accept_offer_or_gift(owner, gift_id, true);
+	accept_gift(owner, gift_id);
 }
 
 ACTION wax_express_trade::sendgift(name owner, const vector<nft_id_t>& nfts, const vector<asset_ex>& fts, uint64_t gift_id, uint64_t box_id)
@@ -293,7 +293,7 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 					print("\n itr_byowner_inventory->quantity.amount: ", itr_byowner_inventory->quantity.amount);
 				}
 
-				check(!(asset_from_proposal.amount > itr_byowner_inventory->quantity.amount), "Not enough to create proposal with " + asset_from_proposal.to_string() + " from author: " + author_from_proposal.to_string() + " You have at balance: " + itr_byowner_inventory->quantity.to_string());
+				check(!(asset_from_proposal.amount > itr_byowner_inventory->quantity.amount), "Not enough to create proposal with " + asset_from_proposal.to_string() + " from author: " + author_from_proposal.to_string() + " You " + owner.to_string() + " have at balance: " + itr_byowner_inventory->quantity.to_string());
 
 				auto itr_seller_inventory = sinventory_.find(itr_byowner_inventory->id);
 				check(!(itr_seller_inventory == sinventory_.end()), "Inventory id = " + to_string(itr_seller_inventory->id) + " does not exist");
@@ -324,7 +324,80 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 	});
 }
 
-void wax_express_trade::accept_offer_or_gift(name owner, uint64_t offer_id, bool isgift)
+void wax_express_trade::accept_gift(name owner, uint64_t gift_id)
+{
+	const auto itr_gift_to_accept = stproposals_.require_find(gift_id, string("Wrong gift id: " + to_string(gift_id)).c_str());
+
+	check(!(itr_gift_to_accept->owner == owner), "This gift id = " + to_string(gift_id) + " belong to you");
+	check(!(itr_gift_to_accept->daterange.datestart > now()), "Gift has start date. Time to wait: " + gettimeToWait(abs((int)((uint64_t)itr_gift_to_accept->daterange.datestart - (uint64_t)now()))));
+	check(!(itr_gift_to_accept->daterange.dateexpire != 0 && itr_gift_to_accept->daterange.dateexpire < now()), "Gift is expired. It was expired: " + gettimeToWait(abs((int)((uint64_t)itr_gift_to_accept->daterange.datestart - (uint64_t)now()))));
+
+	const auto& payer = owner;
+	const auto& gifter = itr_gift_to_accept->owner;
+	const auto& gift_receiver = owner;
+
+	const auto& gift_nft = itr_gift_to_accept->nfts;
+	const auto& gift_fts = itr_gift_to_accept->fts;
+
+	for (auto i = 0; i < itr_gift_to_accept->nfts.size(); i++)
+	{
+		const auto& nft_id = itr_gift_to_accept->nfts[i];
+
+		const auto aid_index = sinventory_.template get_index<"aid"_n>();
+		const auto itr_aid = aid_index.find(nft_id);
+
+		string error = "nft id = " + to_string(nft_id) + " does not exist in inventory";
+		check(!(itr_aid == aid_index.end()), error);
+		check(!(itr_aid != aid_index.end() && itr_aid->aid != nft_id), error);
+
+		if (hasLogging) { print("\n itr_aid->id: ", itr_aid->id); }
+	}
+
+	const auto& gifter_inventory_index = sinventory_.template get_index<"owner"_n>();
+
+	for (auto itr_ft = itr_gift_to_accept->fts.begin(); itr_ft != itr_gift_to_accept->fts.end(); itr_ft++)
+	{
+		// loop over buyer inventory and check each item
+		for (auto itr_gifter_inventory = gifter_inventory_index.find(gifter.value); itr_gifter_inventory != gifter_inventory_index.end(); itr_gifter_inventory++)
+		{
+			if (gifter.value != itr_gifter_inventory->owner.value) {
+				break;
+			}
+
+			if (hasLogging) {
+				print("\n itr_gifter_inventory->assettype: ", itr_gifter_inventory->assettype);
+				print("\n itr_ft->assettype: ", itr_ft->assettype);
+				print("\n itr_gifter_inventory->author: ", itr_gifter_inventory->author);
+				print("\n itr_ft->author: ", itr_ft->author);
+				print("\n itr_gifter_inventory->quantity: ", itr_gifter_inventory->quantity);
+				print("\n itr_ft->quantity: ", itr_ft->quantity);
+			}
+
+			if (itr_gifter_inventory->assettype == itr_ft->assettype && itr_gifter_inventory->author == itr_ft->author && itr_gifter_inventory->quantity.symbol.code() == itr_ft->quantity.symbol.code())
+			{
+				check(!(itr_gifter_inventory->quantity.amount < itr_ft->quantity.amount),
+					"Not enough amount for fungible token of author: " + itr_ft->author.to_string() + " asset: " + itr_ft->quantity.to_string() + " . Gifter " + owner.to_string() + " balance: " + itr_gifter_inventory->quantity.to_string());
+
+				check(!(itr_gifter_inventory->quantity.symbol.precision() != itr_ft->quantity.symbol.precision()),
+					"Wrong precision for ft parameter. Inventory id: " + to_string(itr_gifter_inventory->id) + ". Symbol: " + itr_gifter_inventory->quantity.symbol.code().to_string() +
+					" has precision " + to_string(itr_gifter_inventory->quantity.symbol.precision()) + ". You entered precision: " +
+					to_string(itr_ft->quantity.symbol.precision()));
+
+				if (hasLogging) { print("\n itr_buyer_inventory->id: ", itr_gifter_inventory->id); }
+
+				break;
+			}
+		}
+	}
+
+	if (hasLogging) { print("\n ------------ move_items gifter to caller of this function ------------ \n"); }
+	acceptor_.move_items(payer, gifter, gift_receiver, gift_nft, gift_fts, exchange_fees{}, 0);
+	acceptor_.proposal_id = gift_id;
+
+	acceptor_.clean_proposals_offers_conditions();
+}
+
+void wax_express_trade::accept_offer(name owner, uint64_t offer_id)
 {
 	const auto itr_offer_to_accept = stproposals_.require_find(offer_id, string("Wrong offer id: " + to_string(offer_id)).c_str());
 
@@ -391,32 +464,17 @@ void wax_express_trade::accept_offer_or_gift(name owner, uint64_t offer_id, bool
 	const auto& seller_nfts = itr_offer_to_accept->nfts;
 	const auto& seller_fts = itr_offer_to_accept->fts;
 
-	if (isgift)
-	{
-		const auto& gifter = seller;
-		const auto& gift_receiver = buyer;
+	// read fts and nfts from proposal that connected with offer
+	const auto itr_proposal_topropid = stproposals_.require_find(itr_offer_to_accept->topropid, string("Wrong proposal id: " + to_string(itr_offer_to_accept->topropid) + " that saved at topropid = " + to_string(offer_id)).c_str());
+	const auto& buyer_nfts = itr_proposal_topropid->nfts;
+	const auto& buyer_fts = itr_proposal_topropid->fts;
 
-		const auto& gift_nft = seller_nfts;
-		const auto& gift_fts = seller_fts;
+	// do exchange after the end of matching
+	if (hasLogging) { print("\n ------------ move_items seller to buyer ------------ \n"); }
+	acceptor_.move_items(payer, seller, buyer, seller_nfts, seller_fts, itr_proposal_topropid->fees, itr_proposal_topropid->id);
 
-		if (hasLogging) { print("\n ------------ move_items gifter to caller of this function ------------ \n"); }
-		acceptor_.move_items(payer, gifter, gift_receiver, gift_nft, gift_fts, exchange_fees{}, 0);
-		acceptor_.proposal_id = offer_id;
-	}
-	else
-	{
-		// read fts and nfts from proposal that connected with offer
-		const auto itr_proposal_topropid = stproposals_.require_find(itr_offer_to_accept->topropid, string("Wrong proposal id: " + to_string(itr_offer_to_accept->topropid) + " that saved at topropid = " + to_string(offer_id)).c_str());
-		const auto& buyer_nfts = itr_proposal_topropid->nfts;
-		const auto& buyer_fts = itr_proposal_topropid->fts;
-
-		// do exchange after the end of matching
-		if (hasLogging) { print("\n ------------ move_items seller to buyer ------------ \n"); }
-		acceptor_.move_items(payer, seller, buyer, seller_nfts, seller_fts, itr_proposal_topropid->fees, itr_proposal_topropid->id);
-
-		if (hasLogging) { print("\n ------------ move_items buyer to seller ------------ \n"); }
-		acceptor_.move_items(payer, buyer, seller, buyer_nfts, buyer_fts, exchange_fees{}, 0);
-	}
+	if (hasLogging) { print("\n ------------ move_items buyer to seller ------------ \n"); }
+	acceptor_.move_items(payer, buyer, seller, buyer_nfts, buyer_fts, exchange_fees{}, 0);
 
 	acceptor_.clean_proposals_offers_conditions();
 }
@@ -433,7 +491,7 @@ ACTION wax_express_trade::acceptoffer(name owner, uint64_t offer_id)
 		print("is_proposal_gift: ", acceptor_.is_proposal_gift(offer_id), " offer_id = ", offer_id, " itrOffer->topropid: ", itrOffer->topropid);
 	}
 
-	accept_offer_or_gift(owner, offer_id, false);
+	accept_offer(owner, offer_id);
 }
 
 ACTION wax_express_trade::cancelprop(name owner, uint64_t proposal_id)
