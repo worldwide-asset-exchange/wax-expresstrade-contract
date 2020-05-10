@@ -30,8 +30,8 @@ CONTRACT wax_express_trade : public contract{
 	public:
 	  static uint64_t code_test;
 
-	  ACTION depositprep(name owner, vector<nft_id_t>& nfts, vector<asset_ex>& fts);
-	  using depositprep_action = action_wrapper<"depositprep"_n, &wax_express_trade::depositprep>;
+	  ACTION enabletoken(name owner, vector<nft_id_t>& nfts, vector<asset_ex>& fts);
+	  using enabletoken_action = action_wrapper<"enabletoken"_n, &wax_express_trade::enabletoken>;
 
 	  ACTION withdraw(name owner, vector<nft_id_t>& nfts, vector<asset_ex>& fts);
 	  using withdraw_action = action_wrapper<"withdraw"_n, &wax_express_trade::withdraw>;
@@ -391,9 +391,9 @@ void apply(uint64_t receiver, uint64_t code, uint64_t action)
 
 		switch (action) {
 #ifdef DEBUG
-			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(delcondition)(delproposal)(datamatch)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition)(tstfee)(depositprep)(tstautfee)(acceptgift)(creategift)(requestgift)(sendgift)(isgift))
+			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(delcondition)(delproposal)(datamatch)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition)(tstfee)(enabletoken)(tstautfee)(acceptgift)(creategift)(requestgift)(sendgift)(isgift))
 #else
-			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(rejectoffer)(getbalance)(createwish)(cancelwish)(getversion)(delblacklist)(addblacklist)(depositprep)(acceptgift)(creategift)(requestgift)(sendgift)(delinventory))
+			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(rejectoffer)(getbalance)(createwish)(cancelwish)(getversion)(delblacklist)(addblacklist)(enabletoken)(acceptgift)(creategift)(requestgift)(sendgift)(delinventory))
 #endif
 		}
 	}

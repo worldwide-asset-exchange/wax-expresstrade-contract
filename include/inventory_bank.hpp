@@ -106,6 +106,6 @@ public:
 		}
 
 		check(!(newasset == true),
-			"Call once depositprep action before sending asset from author: " + author.to_string() + " assettype: " + to_string(assettype) + " quantity: " + quantity.to_string());
+			"Call once enabletoken action before sending asset from author: " + author.to_string() + " assettype: " + to_string(assettype) + " quantity: " + quantity.to_string());
 	}
 };

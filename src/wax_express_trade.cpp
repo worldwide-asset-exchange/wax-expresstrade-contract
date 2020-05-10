@@ -11,7 +11,7 @@ ACTION wax_express_trade::getversion() {
 	symbol = "WAX";
 #endif
 
-	string versio_info = "Version number 1.0.13 , Symbol: " + symbol + string(". Build date: 2020-05-10 21:00 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.14 , Symbol: " + symbol + string(". Build date: 2020-05-10 23:59 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() 
 		+ " eosio.token: " + EOSIO_TOKEN.to_string() 
 		+ " COMMUNITY_FEE_ACCOUNT: " + COMMUNITY_FEE_ACCOUNT.to_string();
@@ -547,7 +547,7 @@ ACTION wax_express_trade::cancelprop(name owner, uint64_t proposal_id)
 	}
 }
 
-ACTION wax_express_trade::depositprep(name owner, vector<nft_id_t>& nfts, vector<asset_ex>& fts)
+ACTION wax_express_trade::enabletoken(name owner, vector<nft_id_t>& nfts, vector<asset_ex>& fts)
 {
 	require_auth(owner);
 	require_recipient(owner);
@@ -667,6 +667,9 @@ ACTION wax_express_trade::withdraw(name owner, vector<nft_id_t>& nfts, vector<as
 		).send();
 	}
 
+	vector<inventory_id_t> inventory_to_remove;
+	vector<inventory_id_t> clean_after_remove;
+
 	for (auto ift = 0; ift < fts.size(); ift++)
 	{
 		const auto& nft_id = fts[ift];
@@ -698,13 +701,13 @@ ACTION wax_express_trade::withdraw(name owner, vector<nft_id_t>& nfts, vector<as
 
 					if (!inventory_bank.canwithdraw(owner, itrmynventory->author, withraw_asset, assettype))
 					{
-						acceptor_.remove_all_proposals_for_inventory_item(itrmynventory->id);
+						inventory_to_remove.push_back(itrmynventory->id);
 					}
 				}
 				else
 				{
-					acceptor_.remove_all_proposals_for_inventory_item(itrmynventory->id);
-					myinventory_index.erase(itrmynventory);
+					inventory_to_remove.push_back(itrmynventory->id);
+					clean_after_remove.push_back(itrmynventory->id);
 				}
 
 				if (itrmynventory->assettype == TOKEN)
@@ -726,6 +729,23 @@ ACTION wax_express_trade::withdraw(name owner, vector<nft_id_t>& nfts, vector<as
 					).send();
 				}
 			}
+		}
+	}
+
+	//	separate loop cause of Error apply_context.cpp:113 exec_one
+	for (auto itr_inventory = inventory_to_remove.begin(); itr_inventory != inventory_to_remove.end(); itr_inventory++)
+	{
+		print("\n *itr_inventory: ", *itr_inventory);
+
+		acceptor_.remove_all_proposals_for_inventory_item(*itr_inventory);
+	}
+	// remove inventory items if empty
+	for (auto itr_inventory_remove = clean_after_remove.begin(); itr_inventory_remove != clean_after_remove.end(); itr_inventory_remove++)
+	{
+		auto itr_my_invent = sinventory_.find(*itr_inventory_remove);
+		if (itr_my_invent != sinventory_.end())
+		{
+			sinventory_.erase(itr_my_invent);
 		}
 	}
 }
@@ -761,7 +781,7 @@ void wax_express_trade::receiveASSET(name from, name to, vector<uint64_t>& asset
 		const auto aid_index = sinventory_.template get_index<"aid"_n>();
 		const auto itr_aid = aid_index.find(nft_id);
 
-		const string errorMessage = "Must be called depositprep before sending asset. Wrong assetid: " + to_string(nft_id);
+		const string errorMessage = "Must be called enabletoken before sending asset. Wrong assetid: " + to_string(nft_id);
 		check(!(itr_aid == aid_index.end()), errorMessage);
 		check(!(itr_aid->aid != nft_id), errorMessage);
 

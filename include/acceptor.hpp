@@ -893,8 +893,9 @@ public:
 		}
 	}
 
-	void clean_proposal(const uint64_t& proposal_id)
+	void clean_proposal(uint64_t proposal_id)
 	{
+		check(!(proposal_id == 0), "Internal error! Proposal = " + to_string(proposal_id));
 		if (hasLogging) { print("\n clean_proposal_for_ft "); }
 
 		// modify inventory items inproposal field
@@ -908,35 +909,40 @@ public:
 
 		// remove proposal and it conditions
 		remove_proposal_with_conditions(proposal_id);
-		if (hasLogging) { print("\n clean_proposal_for_ft3 "); }
 
+		if (hasLogging) { print("\n clean_proposal_for_ft3 proposal_id: ", proposal_id); }
 		const auto& topropid_index = stproposals_.template get_index<"topropid"_n>();
 
-		vector<uint64_t> proposal_remove;
+		if (hasLogging) { print("\n after clean_proposal_for_ft3 proposal_id: ", proposal_id); }
+
+		vector<uint64_t> offers_to_remove;
 		// loop over all offers that refer to proposal and remove them
-		for (auto itrprop = topropid_index.find(proposal_id); itrprop != topropid_index.end(); itrprop++)
+		for (auto itroffer = topropid_index.find(proposal_id); itroffer != topropid_index.end(); itroffer++)
 		{
-			if (proposal_id != itrprop->topropid) {
+			if (hasLogging) { print("\n itroffer->topropid : ", itroffer->topropid); }
+
+			if (proposal_id != itroffer->topropid) {
+				if (hasLogging) { print("\n - proposal_id != itroffer->topropid"); }
 				break;
 			}
 
-			auto itr_proposal_item = stproposals_.find(itrprop->id);
-			if (hasLogging) { print("\n itrprop->id ", itrprop->id); }
+			if (hasLogging) { print("\n - itroffer->id ", itroffer->id); }
+			auto itr_offer_item = stproposals_.find(itroffer->id);
 
-			if (itr_proposal_item != stproposals_.end())
+			if (itr_offer_item != stproposals_.end())
 			{
-				if (hasLogging) { print("\n itr_proposal_item->id ", itr_proposal_item->id); }
+				if (hasLogging) { print("\n - itr_proposal_item->id ", itr_offer_item->id); }
 
-				modify_inproposal(itr_proposal_item->owner, itr_proposal_item->id);
+				modify_inproposal(itr_offer_item->owner, itr_offer_item->id);
 			}
 
-			proposal_remove.push_back(itrprop->id);
+			offers_to_remove.push_back(itroffer->id);
 		}
 
 		//	separate loop cause of Error 3160005: The table operation is not allowed
-		for (auto itr_prop = proposal_remove.begin(); itr_prop != proposal_remove.end(); itr_prop++)
+		for (auto itr_offer = offers_to_remove.begin(); itr_offer != offers_to_remove.end(); itr_offer++)
 		{
-			remove_proposal_with_conditions(*itr_prop);
+			remove_proposal_with_conditions(*itr_offer);
 		}
 	}
 
@@ -946,11 +952,18 @@ public:
 
 		if (itr_inventory != sinventory_.end())
 		{
+			// make copy to prevent changing iterator after remove
+			auto inproposal = itr_inventory->inproposal;
 			// loop over all inproposal items for one item from inventory table
-			for (auto itr_inprop = itr_inventory->inproposal.begin(); itr_inprop != itr_inventory->inproposal.end(); itr_inprop++)
+			for (auto itr_inprop = inproposal.begin(); itr_inprop != inproposal.end(); itr_inprop++)
 			{
-				// remove proposal and it conditions
-				clean_proposal(*itr_inprop);
+				if (hasLogging) { print("\n - *itr_inprop: ", *itr_inprop); }
+
+				if (*itr_inprop != 0)
+				{
+					// remove proposal and it conditions
+					clean_proposal(*itr_inprop);
+				}
 			}
 			sinventory_.modify(itr_inventory, get_self(), [&](auto& s) {
 				s.inproposal = vector<proposal_id_t>();

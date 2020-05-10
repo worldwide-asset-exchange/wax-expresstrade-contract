@@ -377,7 +377,7 @@
             ]
         },
         {
-            "name": "depositprep",
+            "name": "enabletoken",
             "base": "",
             "fields": [
                 {
@@ -771,8 +771,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "depositprep",
-            "type": "depositprep",
+            "name": "enabletoken",
+            "type": "enabletoken",
             "ricardian_contract": ""
         },
         {
