@@ -11,7 +11,7 @@ ACTION wax_express_trade::getversion() {
 	symbol = "WAX";
 #endif
 
-	string versio_info = "Version number 1.0.14 , Symbol: " + symbol + string(". Build date: 2020-05-10 23:59 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.15 , Symbol: " + symbol + string(". Build date: 2020-05-21 14:10 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() 
 		+ " eosio.token: " + EOSIO_TOKEN.to_string() 
 		+ " COMMUNITY_FEE_ACCOUNT: " + COMMUNITY_FEE_ACCOUNT.to_string();

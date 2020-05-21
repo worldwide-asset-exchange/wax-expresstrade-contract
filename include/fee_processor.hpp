@@ -94,26 +94,16 @@ public:
 	{
 		uint16_t result = 0;
 		authors author_(SIMPLEASSETS_CONTRACT, SIMPLEASSETS_CONTRACT.value);
-		auto itr = author_.find(author.value);
 
-		if (itr != author_.end())
-		{
-			const auto& dappinfojson = json::parse(itr->dappinfo, nullptr, false);
+		if (auto itr = author_.find(author.value); itr != author_.end()) {
 
-			// unable to parse json
-			if (dappinfojson.dump() == "<discarded>")
-			{
-				if (hasLogging) { print("\n dappinfojson.dump() == <discarded>"); }
-			}
-			else
-			{
-				result = (uint16_t)dappinfojson[authorFeeTagName];
-			}
-		}
-		else
-		{
-			if (hasLogging) {
-				print("\n author does not registered. author=", author);
+			if (json::accept(itr->dappinfo)) {
+
+				auto dappinfojson = json::parse(itr->dappinfo);
+
+				if (dappinfojson.dump() != "<discarded>" && !dappinfojson["defaultfee"].is_null()) {
+					result = (uint16_t)dappinfojson["defaultfee"];
+				}
 			}
 		}
 
@@ -122,7 +112,7 @@ public:
 			if (hasLogging) {
 				print("\n Author " + author.to_string() + " entered wrong fee =" + to_string(result) + " in Simple asset`s " + to_string(result) + " Author`s fee cannot be bigger then " + to_string(AUTHOR_FEE_MAX));
 			}
-			result = 0;
+			result = AUTHOR_FEE_MAX;
 		}
 
 		return result;
