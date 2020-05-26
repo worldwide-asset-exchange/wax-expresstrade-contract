@@ -263,7 +263,7 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 		check(!(itr_seller_inventory == sinventory_.end()), "Inventory id = " + to_string(itr_aid->id) + " does not exist");
 		check(!(itr_seller_inventory->inproposal.size() > MAX_PROPOSALS_PER_NFT), "Inventory id = " + to_string(itr_seller_inventory->id) + " exide maximum proposals for one nft which is " + to_string(MAX_PROPOSALS_PER_NFT) + " proposals");
 
-		sinventory_.modify(itr_seller_inventory, owner, [&](auto& s) {
+		sinventory_.modify(itr_seller_inventory, get_self() /*owner*/, [&](auto& s) {
 			s.inproposal.push_back(new_proposal_id);
 		});
 	}
@@ -299,7 +299,7 @@ void wax_express_trade::create_proposal(name owner, const vector<nft_id_t>& nfts
 				check(!(itr_seller_inventory == sinventory_.end()), "Inventory id = " + to_string(itr_seller_inventory->id) + " does not exist");
 				check(!(itr_seller_inventory->inproposal.size() > MAX_PROPOSALS_PER_FT), "Inventory id = " + to_string(itr_seller_inventory->id) + " exide maximum proposals for one ft which is " + to_string(MAX_PROPOSALS_PER_FT) + " proposals");
 
-				sinventory_.modify(itr_seller_inventory, owner, [&](auto& s) {
+				sinventory_.modify(itr_seller_inventory, get_self() /*owner*/, [&](auto& s) {
 					s.inproposal.push_back(new_proposal_id);
 				});
 
@@ -526,7 +526,7 @@ ACTION wax_express_trade::cancelprop(name owner, uint64_t proposal_id)
 			const auto& itr = sinventory_.find(itrowner->id);
 			if (itr != sinventory_.end()) {
 				inproposal.erase(inprop_itr);
-				sinventory_.modify(itr, owner, [&](auto& s) {
+				sinventory_.modify(itr, get_self() /*owner*/, [&](auto& s) {
 					s.inproposal = inproposal;
 				});
 			}
@@ -625,7 +625,7 @@ ACTION wax_express_trade::enabletoken(name owner, vector<nft_id_t>& nfts, vector
 				print("sinventory_.emplace quantity: ", quantity, " inventory id: ", id);
 			}
 
-			sinventory_.emplace(owner, [&](auto& g) {
+			sinventory_.emplace(get_self() /*owner*/, [&](auto& g) {
 				g.id = id;
 				g.owner = owner;
 				g.assettype = INACTIVE_OFFSET + assettype;
@@ -694,7 +694,7 @@ ACTION wax_express_trade::withdraw(name owner, vector<nft_id_t>& nfts, vector<as
 					auto itr_my_invent = sinventory_.find(itrmynventory->id);
 					if (itr_my_invent != sinventory_.end())
 					{
-						sinventory_.modify(itr_my_invent, owner, [&](auto& s) {
+						sinventory_.modify(itr_my_invent, get_self() /*owner*/, [&](auto& s) {
 							s.quantity.amount -= withraw_asset.amount;
 						});
 					}
@@ -808,6 +808,37 @@ void wax_express_trade::receiveToken(name from, name to, asset quantity, string 
 	inventory_bank.depositFT(from, name(wax_express_trade::code_test), quantity, TOKEN);
 }
 
+uint64_t wax_express_trade::get_free_trades_used(name user){
+    auto it = sfreetrades.find(user.value);
+    if(it == sfreetrades.end())
+        return 0;
+    else
+        return it->numopen;
+}
+
+void wax_express_trade::change_free_trades(name user, int64_t delta)
+{
+    auto it = sfreetrades.find(user.value);
+    if(it == sfreetrades.end()){
+        uint64_t numOpen = delta > 0 ? delta : 0;
+        sfreetrades.emplace(get_self(), [&](auto& row) {
+            row.user = user;
+            row.numopen = numOpen;
+        });
+    }else{
+        sfreetrades.modify(it, get_self(), [&](auto & row){
+            uint64_t newNumOpen = row.numopen;
+            if(delta < 0 && newNumOpen > 0)
+                newNumOpen += delta;
+            else if (delta > 0)
+                newNumOpen += delta;
+
+            row.user = row.user;
+            row.numopen = newNumOpen;
+        });
+    }
+}
+
 ACTION wax_express_trade::getbalance(name owner, name author, string sym)
 {
 	const auto& inventory_index = sinventory_.template get_index<"owner"_n>();
@@ -887,7 +918,7 @@ ACTION wax_express_trade::changetype(name owner, uint64_t inventory_id, uint64_t
 	const auto& itr_inventory = sinventory_.find(inventory_id);
 	check(!(itr_inventory == sinventory_.end()), "Inventory id " + to_string(inventory_id) + " does not exist");
 
-	sinventory_.modify(itr_inventory, owner, [&](auto& s) {
+	sinventory_.modify(itr_inventory, get_self() /*owner*/, [&](auto& s) {
 		s.assettype = assettype;
 	});
 }

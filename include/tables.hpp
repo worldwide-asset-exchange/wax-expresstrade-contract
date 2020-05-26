@@ -23,7 +23,17 @@ class tables
 	name : author * ? // SA author
 */
 public:
-	TABLE inventory{
+    TABLE freetrades{
+            name user;
+            uint64_t numopen; //number of free trades open
+
+            auto primary_key() const {
+                return user.value;
+            }
+    };
+    typedef eosio::multi_index< "sfreetrades"_n, freetrades> sfreetrades;
+
+    TABLE inventory{
 		uint64_t				id;         // unique id for every NFT or FT. (If two different owners have the same FT (like PGL), it get different ids.
 		name					owner;      // wax account
 		uint64_t				aid;        // Simple Asset ID
