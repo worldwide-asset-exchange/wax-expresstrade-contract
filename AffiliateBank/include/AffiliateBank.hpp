@@ -14,17 +14,11 @@ using json = nlohmann::json;
 using namespace eosio;
 using namespace std;
 
-#define DEBUG
-#define EOSCHAIN
-//#define WAXCHAIN
+//#define EOSCHAIN
+#define WAXCHAIN
 
 const bool hasLogging = true;
-
-#ifdef DEBUG
-const name SIMPLEASSETS_CONTRACT = "simpleasset5"_n;
-#else
 const name SIMPLEASSETS_CONTRACT = "simpleassets"_n;
-#endif
 
 const name EOSIO_TOKEN       = "eosio.token"_n;
 const name WAX_EXPRESS_TRADE = "barter111111"_n;

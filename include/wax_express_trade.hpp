@@ -28,8 +28,6 @@ CONTRACT wax_express_trade : public contract{
 	using contract::contract;
 
 	public:
-	  static uint64_t code_test;
-
 	  ACTION enabletoken(name owner, vector<nft_id_t>& nfts, vector<asset_ex>& fts);
 	  using enabletoken_action = action_wrapper<"enabletoken"_n, &wax_express_trade::enabletoken>;
 
@@ -84,9 +82,10 @@ CONTRACT wax_express_trade : public contract{
 	  ACTION delinventory(uint64_t inventory_id);
 	  using delinventory_action = action_wrapper<"delinventory"_n, &wax_express_trade::delinventory>;
 
-	  void receiveToken(name from, name to, asset quantity, string memo);
-	  void receiveASSET(name from, name to, vector<uint64_t>& assetids, string memo);
-	  void receiveASSETF(name from, name to, name author, asset quantity, string memo);
+	  [[eosio::on_notify("simpleassets::transfer")]] void ontransfersa(name from, name to, vector<uint64_t>& assetids, string memo);
+	  [[eosio::on_notify("*::transfer")]] void ontransfer(name from, name to, asset quantity, string memo);
+	  [[eosio::on_notify("simpleassets::transferf")]] void ontransferf(name from, name to, name author, asset quantity, string memo);
+
 #ifdef DEBUG
 public:
 	ACTION tstfee(name nft_author, exchange_fees fee, asset_ex payment_ft_from_proposal);
@@ -372,31 +371,3 @@ private:
 	global _cstate; /// global state
 
 };
-
-extern "C"
-void apply(uint64_t receiver, uint64_t code, uint64_t action)
-{
-	wax_express_trade::code_test = code;
-
-	if (code == SIMPLEASSETS_CONTRACT.value && action == "transfer"_n.value) {
-		eosio::execute_action(eosio::name(receiver), eosio::name(code), &wax_express_trade::receiveASSET);
-	}
-	else if (code == SIMPLEASSETS_CONTRACT.value && action == "transferf"_n.value) {
-		eosio::execute_action(eosio::name(receiver), eosio::name(code), &wax_express_trade::receiveASSETF);
-	}
-	else if (action == "transfer"_n.value) {
-		eosio::execute_action(eosio::name(receiver), eosio::name(code), &wax_express_trade::receiveToken);
-	}
-	else if (code == receiver) {
-
-		switch (action) {
-#ifdef DEBUG
-			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(delcondition)(delproposal)(datamatch)(rejectoffer)(delinventory)(testgetvalue)(getbalance)(createwish)(cancelwish)(testisint)(tstwithdraw)(getversion)(eraseallprop)(changetype)(delblacklist)(addblacklist)(tstcondition)(tstfee)(enabletoken)(tstautfee)(acceptgift)(creategift)(requestgift)(sendgift)(isgift))
-#else
-			EOSIO_DISPATCH_HELPER(wax_express_trade, (createprop)(createoffer)(withdraw)(cancelprop)(acceptoffer)(rejectoffer)(getbalance)(createwish)(cancelwish)(getversion)(delblacklist)(addblacklist)(enabletoken)(acceptgift)(creategift)(requestgift)(sendgift)(delinventory))
-#endif
-		}
-	}
-}
-
-uint64_t wax_express_trade::code_test = 0;

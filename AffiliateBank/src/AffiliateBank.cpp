@@ -121,6 +121,10 @@ void AffiliateBank::depositFT(exchange_fees fee, asset_ex payment)
 
 void AffiliateBank::receiveASSETF(name from, name to, name author, asset quantity, string memo)
 {
+	if (to != get_self() || from == get_self()) {
+		return;
+	}
+
 	check(!(from != WAX_EXPRESS_TRADE), errorWAXTradeOnly);
 	require_auth(from);
 	
@@ -151,6 +155,10 @@ AffiliateBank::exchange_fees AffiliateBank::parseMemo(const string& memo)
 
 void AffiliateBank::receiveToken(name from, name to, asset quantity, string memo)
 {
+	if (to != get_self() || from == get_self()) {
+		return;
+	}
+
 	check(!(from != WAX_EXPRESS_TRADE), errorWAXTradeOnly);
 	require_auth(from);
 	depositFT(parseMemo(memo), { name(AffiliateBank::code_test), quantity, TOKEN });

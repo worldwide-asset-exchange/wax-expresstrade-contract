@@ -11,7 +11,7 @@ ACTION wax_express_trade::getversion() {
 	symbol = "WAX";
 #endif
 
-	string versio_info = "Version number 1.0.15 , Symbol: " + symbol + string(". Build date: 2020-05-21 14:10 ") + (hasLogging == true ? "with logging" : "without logging")
+	string versio_info = "Version number 1.0.17 , Symbol: " + symbol + string(". Build date: 2020-11-05 19:08 ") + (hasLogging == true ? "with logging" : "without logging")
 		+ string(". simpleasset: ") + SIMPLEASSETS_CONTRACT.to_string() 
 		+ " eosio.token: " + EOSIO_TOKEN.to_string() 
 		+ " COMMUNITY_FEE_ACCOUNT: " + COMMUNITY_FEE_ACCOUNT.to_string();
@@ -750,9 +750,9 @@ ACTION wax_express_trade::withdraw(name owner, vector<nft_id_t>& nfts, vector<as
 	}
 }
 
-void wax_express_trade::receiveASSETF(name from, name to, name author, asset quantity, string memo)
+void wax_express_trade::ontransferf(name from, name to, name author, asset quantity, string memo)
 {
-	if (from == get_self()) {
+	if (to != get_self() || from == get_self()) {
 		return;
 	}
 	require_auth(from);
@@ -762,9 +762,9 @@ void wax_express_trade::receiveASSETF(name from, name to, name author, asset qua
 	inventory_bank.depositFT(from, author, quantity, SA_FT);
 }
 
-void wax_express_trade::receiveASSET(name from, name to, vector<uint64_t>& assetids, string memo) {
+void wax_express_trade::ontransfersa(name from, name to, vector<uint64_t>& assetids, string memo) {
 
-	if (from == get_self()) {
+	if (to != get_self() || from == get_self()) {
 		return;
 	}
 
@@ -797,15 +797,16 @@ void wax_express_trade::receiveASSET(name from, name to, vector<uint64_t>& asset
 	}
 }
 
-void wax_express_trade::receiveToken(name from, name to, asset quantity, string memo)
+void wax_express_trade::ontransfer(name from, name to, asset quantity, string memo)
 {
 	if (to != get_self()) {
 		return;
 	}
 
 	require_auth(from);
+	const auto token_contract = get_first_receiver();
 
-	inventory_bank.depositFT(from, name(wax_express_trade::code_test), quantity, TOKEN);
+	inventory_bank.depositFT(from, token_contract, quantity, TOKEN);
 }
 
 ACTION wax_express_trade::getbalance(name owner, name author, string sym)
